@@ -8,6 +8,7 @@ window.AppStorage = (function () {
     speechRate: 0.85,
     customItems: [],
     completedStation0Challenges: [],
+    station1QuizSolved: [],
     /* Espacios reservados para Estaciones 1 a 4 */
     comparatives: [],
     newspaper: {},

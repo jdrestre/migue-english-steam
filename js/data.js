@@ -133,17 +133,32 @@ window.APP_DATA = {
   interestWarmups: {
     comparatives: [
       {
-        rule: "Corto (-er than)",
+        badge: "Regla 1: Corta (-er + than)",
+        icon: "🎹",
+        blue: "Playing piano",
+        orange: "is calmer",
+        green: "than",
+        purple: "playing Fortnite on Play",
         en: "Playing piano is calmer than playing Fortnite on Play.",
         es: "Tocar piano es más tranquilo que jugar Fortnite en Play."
       },
       {
-        rule: "Largo (more ... than)",
+        badge: "Regla 2: Larga (more + adj + than)",
+        icon: "▶️",
+        blue: "MrBeast challenges",
+        orange: "are more exciting",
+        green: "than",
+        purple: "homework",
         en: "MrBeast challenges are more exciting than homework.",
         es: "Los retos de MrBeast son más emocionantes que las tareas."
       },
       {
-        rule: "Irregular (better than)",
+        badge: "Regla 3: Irregular (better + than)",
+        icon: "🎮",
+        blue: "Making music on the piano",
+        orange: "is better",
+        green: "than",
+        purple: "being bored",
         en: "Making music on the piano is better than being bored.",
         es: "Hacer música en el piano es mejor que estar aburrido."
       }
@@ -162,6 +177,109 @@ window.APP_DATA = {
       }
     ]
   },
+
+  /* Mini-entrenador de reglas de Comparatives (Estación 1) */
+  comparativeQuizItems: [
+    {
+      id: "qz-easy",
+      base: "easy",
+      es: "fácil",
+      answer: "short",
+      correctForm: "easier than",
+      options: [
+        { type: "short", label: "easier than (-er)" },
+        { type: "long", label: "more easy than" },
+        { type: "irregular", label: "better than" }
+      ],
+      tipOk: "¡Exacto! 'easy' termina en -y, cambia a 'i' + '-er': easier than.",
+      tipRetry: "Pista: 'easy' es palabra corta terminada en -y (ea-sy). Usa la regla corta (-ier)."
+    },
+    {
+      id: "qz-difficult",
+      base: "difficult",
+      es: "difícil",
+      answer: "long",
+      correctForm: "more difficult than",
+      options: [
+        { type: "short", label: "difficulter than" },
+        { type: "long", label: "more difficult than" },
+        { type: "irregular", label: "better than" }
+      ],
+      tipOk: "¡Super! 'difficult' es larga (di-ffi-cult = 3 golpes), por eso lleva 'more'.",
+      tipRetry: "Pista: cuenta los golpes de voz: di-ffi-cult (3 golpes = palabra larga). Usa 'more'."
+    },
+    {
+      id: "qz-hard",
+      base: "hard",
+      es: "duro / difícil",
+      answer: "short",
+      correctForm: "harder than",
+      options: [
+        { type: "short", label: "harder than (-er)" },
+        { type: "long", label: "more hard than" },
+        { type: "irregular", label: "better than" }
+      ],
+      tipOk: "¡Muy bien! 'hard' tiene solo 1 golpe de voz, se le pega '-er': harder than.",
+      tipRetry: "Pista: 'hard' tiene solo 1 golpe de voz (palabra corta). Lleva '-er'."
+    },
+    {
+      id: "qz-colorful",
+      base: "colorful",
+      es: "colorido",
+      answer: "long",
+      correctForm: "more colorful than",
+      options: [
+        { type: "short", label: "colorfuler than" },
+        { type: "long", label: "more colorful than" },
+        { type: "irregular", label: "better than" }
+      ],
+      tipOk: "¡Excelente! 'colorful' (co-lor-ful) es larga, ideal para fiestas culturales y el atrapasueños.",
+      tipRetry: "Pista: co-lor-ful tiene 3 golpes de voz (palabra larga). Usa 'more'."
+    },
+    {
+      id: "qz-interesting",
+      base: "interesting",
+      es: "interesante",
+      answer: "long",
+      correctForm: "more interesting than",
+      options: [
+        { type: "short", label: "interestinger than" },
+        { type: "long", label: "more interesting than" },
+        { type: "irregular", label: "better than" }
+      ],
+      tipOk: "¡Genial! 'interesting' es larga, siempre va con 'more interesting than'.",
+      tipRetry: "Pista: in-te-res-ting es una palabra larga. Usa 'more'."
+    },
+    {
+      id: "qz-good",
+      base: "good",
+      es: "bueno",
+      answer: "irregular",
+      correctForm: "better than",
+      options: [
+        { type: "short", label: "gooder than" },
+        { type: "long", label: "more good than" },
+        { type: "irregular", label: "better than (Irregular)" }
+      ],
+      tipOk: "¡Crack! 'good' es irregular: nunca se dice gooder, siempre es 'better than'.",
+      tipRetry: "Pista: ¡Cuidado con la trampa! 'good' es irregular (no usa -er ni more)."
+    }
+  ],
+
+  /* Banco de adjetivos comparativos A1 para el Constructor LEGO (Estación 1) */
+  comparativeAdjectives: [
+    { id: "adj-easier", en: "easier", es: "más fácil", group: "short", base: "easy" },
+    { id: "adj-harder", en: "harder", es: "más difícil / duro", group: "short", base: "hard" },
+    { id: "adj-faster", en: "faster", es: "más rápido", group: "short", base: "fast" },
+    { id: "adj-longer", en: "longer", es: "más largo", group: "short", base: "long" },
+    { id: "adj-more-difficult", en: "more difficult", es: "más difícil", group: "long", base: "difficult" },
+    { id: "adj-more-interesting", en: "more interesting", es: "más interesante", group: "long", base: "interesting" },
+    { id: "adj-more-colorful", en: "more colorful", es: "más colorido", group: "long", base: "colorful" },
+    { id: "adj-more-exciting", en: "more exciting", es: "más emocionante", group: "long", base: "exciting" },
+    { id: "adj-more-creative", en: "more creative", es: "más creativo", group: "long", base: "creative" },
+    { id: "adj-more-fun", en: "more fun", es: "más divertido", group: "long", base: "fun" },
+    { id: "adj-better", en: "better", es: "mejor", group: "irregular", base: "good" }
+  ],
 
   /* Glosario local Español -> Inglés A1 (orientado a STEAM, manualidades, colegio y gustos de Miguel) */
   esToEnGlossary: [

@@ -235,6 +235,7 @@
         state.customItems = (state.customItems || []).filter((i) => i.id !== id);
         window.AppStorage.save(state);
         renderBank();
+        renderStation1Builder();
         showToast("Elemento quitado del banco.");
       });
     });
@@ -313,6 +314,7 @@
         });
         window.AppStorage.save(state);
         renderBank();
+        renderStation1Builder();
         form.reset();
         if (inputEn) inputEn.dataset.userEdited = "false";
         showToast(`Agregado al banco: ${enVal}`);
@@ -538,6 +540,537 @@
     renderStation0Builder();
   }
 
+  /* ==================== ESTACIÓN 1: COMPARATIVES BUILDER ==================== */
+  let compDraft = {
+    item1Id: null,
+    verb: "was",
+    adjId: null,
+    hasThan: false,
+    item2Id: null
+  };
+
+  function renderStation1Warmups() {
+    const grid = document.getElementById("st1-warmup-grid");
+    if (!grid) return;
+    const warmups = (window.APP_DATA.interestWarmups && window.APP_DATA.interestWarmups.comparatives) || [];
+
+    grid.innerHTML = warmups
+      .map(
+        (w, idx) => `
+        <article class="warmup-card">
+          <div>
+            <span class="warmup-badge">${w.icon} ${escapeHtml(w.badge)}</span>
+            <div class="colored-sentence" style="margin: 10px 0 8px;">
+              <span class="tok tok-blue">${escapeHtml(w.blue)}</span>
+              <span class="tok tok-orange">${escapeHtml(w.orange)}</span>
+              <span class="tok tok-green">${escapeHtml(w.green)}</span>
+              <span class="tok tok-purple">${escapeHtml(w.purple)}.</span>
+            </div>
+            <p class="warmup-es">${escapeHtml(w.es)}</p>
+          </div>
+          <div>
+            <button type="button" class="btn btn-audio btn-sm" data-warmup-speak="${idx}">🔊 Escuchar ejemplo</button>
+          </div>
+        </article>`
+      )
+      .join("");
+
+    grid.querySelectorAll("[data-warmup-speak]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const w = warmups[Number(btn.getAttribute("data-warmup-speak"))];
+        if (w) window.AppSpeech.speak(w.en, showToast);
+      });
+    });
+  }
+
+  function renderStation1Quiz() {
+    const grid = document.getElementById("st1-quiz-grid");
+    const badge = document.getElementById("st1-quiz-badge");
+    if (!grid) return;
+
+    const items = window.APP_DATA.comparativeQuizItems || [];
+    const solved = state.station1QuizSolved || [];
+
+    if (badge) {
+      badge.textContent =
+        solved.length === items.length
+          ? `🏆 ¡${solved.length} de ${items.length} dominados!`
+          : `${solved.length} de ${items.length} dominados`;
+    }
+
+    grid.innerHTML = items
+      .map((item) => {
+        const isSolved = solved.includes(item.id);
+        const optsHtml = item.options
+          .map((opt) => {
+            const cls = isSolved && opt.type === item.answer ? "is-right" : "";
+            return `
+              <button type="button" class="quiz-opt-btn ${cls}" data-qz-id="${item.id}" data-qz-type="${opt.type}" ${isSolved ? "disabled" : ""}>
+                ${isSolved && opt.type === item.answer ? "✅ " : ""}${escapeHtml(opt.label)}
+              </button>`;
+          })
+          .join("");
+
+        return `
+          <article class="quiz-card ${isSolved ? "is-solved" : ""}" id="card-${item.id}">
+            <div class="quiz-word">
+              <strong>${escapeHtml(item.base)}</strong>
+              <span>(${escapeHtml(item.es)})</span>
+            </div>
+            <div class="quiz-options">${optsHtml}</div>
+            <div class="quiz-feedback ${isSolved ? "ok" : ""}" id="fb-${item.id}">
+              ${isSolved ? escapeHtml(item.tipOk) : "Elige la regla correcta:"}
+            </div>
+            ${
+              isSolved
+                ? `<button type="button" class="btn btn-audio btn-sm" data-qz-speak="${escapeHtml(item.correctForm)}">🔊 Escuchar "${escapeHtml(item.correctForm)}"</button>`
+                : ""
+            }
+          </article>`;
+      })
+      .join("");
+
+    grid.querySelectorAll("[data-qz-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const qid = btn.getAttribute("data-qz-id");
+        const chosen = btn.getAttribute("data-qz-type");
+        const item = items.find((i) => i.id === qid);
+        if (!item) return;
+
+        if (chosen === item.answer) {
+          if (!state.station1QuizSolved.includes(qid)) {
+            state.station1QuizSolved.push(qid);
+            window.AppStorage.save(state);
+          }
+          renderStation1Quiz();
+          window.AppSpeech.speak(item.correctForm, showToast);
+        } else {
+          btn.classList.add("is-wrong");
+          const fb = document.getElementById(`fb-${qid}`);
+          if (fb) {
+            fb.className = "quiz-feedback retry";
+            fb.textContent = item.tipRetry;
+          }
+        }
+      });
+    });
+
+    grid.querySelectorAll("[data-qz-speak]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        window.AppSpeech.speak(btn.getAttribute("data-qz-speak"), showToast);
+      });
+    });
+  }
+
+  function renderStation1Builder() {
+    const item1Wrap = document.getElementById("comp-item1-chips");
+    const item2Wrap = document.getElementById("comp-item2-chips");
+    const shortWrap = document.getElementById("comp-adj-short");
+    const longWrap = document.getElementById("comp-adj-long");
+    const irregWrap = document.getElementById("comp-adj-irregular");
+    const verbWrap = document.getElementById("comp-verb-chips");
+    const thanBtn = document.getElementById("comp-than-btn");
+    const slotsBar = document.getElementById("comp-slots-bar");
+    const previewBox = document.getElementById("comp-preview-box");
+    const statusBadge = document.getElementById("comp-status-badge");
+    const previewOut = document.getElementById("comp-preview-output");
+    const esMeaning = document.getElementById("comp-spanish-meaning");
+    const speakBtn = document.getElementById("comp-speak-btn");
+    const saveBtn = document.getElementById("comp-save-btn");
+
+    if (!item1Wrap || !item2Wrap || !shortWrap) return;
+
+    const bankItems = getAllBankItems();
+    const adjectives = window.APP_DATA.comparativeAdjectives || [];
+
+    if (compDraft.item1Id && !bankItems.some((i) => i.id === compDraft.item1Id)) compDraft.item1Id = null;
+    if (compDraft.item2Id && !bankItems.some((i) => i.id === compDraft.item2Id)) compDraft.item2Id = null;
+
+    /* 1. Chips de Bloque Azul (Elemento 1) */
+    item1Wrap.innerHTML = bankItems
+      .map((item) => {
+        const sel = compDraft.item1Id === item.id;
+        return `
+          <button type="button" class="lego-piece lego-piece-blue ${sel ? "is-selected" : ""}" data-c-item1="${escapeHtml(item.id)}">
+            <span>${escapeHtml(item.en)}</span>
+            <span class="es-mini">(${escapeHtml(item.es)})</span>
+          </button>`;
+      })
+      .join("");
+
+    item1Wrap.querySelectorAll("[data-c-item1]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-c-item1");
+        compDraft.item1Id = compDraft.item1Id === id ? null : id;
+        const chosen = bankItems.find((i) => i.id === compDraft.item1Id);
+        if (chosen) {
+          compDraft.verb = chosen.category === "cultural" ? "is" : "was";
+        }
+        renderStation1Builder();
+      });
+    });
+
+    /* 2. Verbo (was / is) */
+    if (verbWrap) {
+      verbWrap.querySelectorAll("[data-comp-verb]").forEach((btn) => {
+        const v = btn.getAttribute("data-comp-verb");
+        btn.classList.toggle("is-selected", compDraft.verb === v);
+      });
+    }
+
+    /* 3. Chips de Adjetivos Naranja */
+    function renderAdjGroup(container, groupName) {
+      const list = adjectives.filter((a) => a.group === groupName);
+      container.innerHTML = list
+        .map((adj) => {
+          const sel = compDraft.adjId === adj.id;
+          return `
+            <button type="button" class="lego-piece lego-piece-orange ${sel ? "is-selected" : ""}" data-c-adj="${adj.id}">
+              <span>${escapeHtml(adj.en)}</span>
+              <span class="es-mini">(${escapeHtml(adj.es)})</span>
+            </button>`;
+        })
+        .join("");
+
+      container.querySelectorAll("[data-c-adj]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const aid = btn.getAttribute("data-c-adj");
+          compDraft.adjId = compDraft.adjId === aid ? null : aid;
+          renderStation1Builder();
+        });
+      });
+    }
+
+    renderAdjGroup(shortWrap, "short");
+    renderAdjGroup(longWrap, "long");
+    renderAdjGroup(irregWrap, "irregular");
+
+    /* 4. Conector Verde (than) */
+    if (thanBtn) {
+      thanBtn.classList.toggle("is-selected", compDraft.hasThan);
+      thanBtn.innerHTML = compDraft.hasThan
+        ? `<span>✓ than</span> <span class="es-mini">(que — puesto)</span>`
+        : `<span>+ than</span> <span class="es-mini">(que)</span>`;
+    }
+
+    /* 5. Chips de Bloque Morado (Elemento 2) */
+    item2Wrap.innerHTML = bankItems
+      .map((item) => {
+        const sel = compDraft.item2Id === item.id;
+        return `
+          <button type="button" class="lego-piece lego-piece-purple ${sel ? "is-selected" : ""}" data-c-item2="${escapeHtml(item.id)}">
+            <span>${escapeHtml(item.en)}</span>
+            <span class="es-mini">(${escapeHtml(item.es)})</span>
+          </button>`;
+      })
+      .join("");
+
+    item2Wrap.querySelectorAll("[data-c-item2]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-c-item2");
+        compDraft.item2Id = compDraft.item2Id === id ? null : id;
+        renderStation1Builder();
+      });
+    });
+
+    /* 6. Visualizador de Slots LEGO y Validación en Vivo */
+    const item1 = bankItems.find((i) => i.id === compDraft.item1Id) || null;
+    const adj = adjectives.find((a) => a.id === compDraft.adjId) || null;
+    const item2 = bankItems.find((i) => i.id === compDraft.item2Id) || null;
+
+    if (slotsBar) {
+      slotsBar.innerHTML = `
+        <span class="lego-slot ${item1 ? "filled-blue" : ""}">${item1 ? escapeHtml(item1.en) : "1. 🟦 Cosa 1"}</span>
+        <span class="lego-slot ${adj ? "filled-orange" : ""}">${adj ? escapeHtml(compDraft.verb + " " + adj.en) : "2. 🟧 " + compDraft.verb + " + comparativo"}</span>
+        <span class="lego-slot ${compDraft.hasThan ? "filled-green" : ""}">${compDraft.hasThan ? "than" : "3. 🟩 than"}</span>
+        <span class="lego-slot ${item2 ? "filled-purple" : ""}">${item2 ? escapeHtml(item2.en) : "4. 🟪 Cosa 2"}</span>
+      `;
+    }
+
+    const isSameItem = Boolean(item1 && item2 && item1.id === item2.id);
+    const isComplete = Boolean(item1 && adj && compDraft.hasThan && item2 && !isSameItem);
+
+    previewBox.classList.remove("is-correct", "is-wrong");
+    statusBadge.classList.remove("status-idle", "status-progress", "status-wrong", "status-correct");
+
+    if (isSameItem) {
+      previewBox.classList.add("is-wrong");
+      statusBadge.classList.add("status-wrong");
+      statusBadge.textContent = "💡 Elegiste la misma actividad en Azul y Morado. Cambia una para comparar dos cosas distintas.";
+    } else if (isComplete) {
+      previewBox.classList.add("is-correct");
+      statusBadge.classList.add("status-correct");
+      statusBadge.textContent = "✅ ¡Comparativo perfecto Miguel! Ya puedes escucharlo y guardarlo para el martes.";
+    } else if (!item1) {
+      statusBadge.classList.add("status-idle");
+      statusBadge.textContent = "🧩 Paso 1: Elige el Bloque Azul (Actividad o Fiesta 1).";
+    } else if (!adj) {
+      statusBadge.classList.add("status-progress");
+      statusBadge.textContent = "⏳ Paso 2: Elige el Bloque Naranja (Adjetivo comparativo).";
+    } else if (!compDraft.hasThan) {
+      statusBadge.classList.add("status-progress");
+      statusBadge.textContent = "⏳ Paso 3: ¡No olvides el Bloque Verde! Oprime el botón '+ than (que)'.";
+    } else {
+      statusBadge.classList.add("status-progress");
+      statusBadge.textContent = "⏳ Paso 4: Elige el Bloque Morado (Actividad o Fiesta 2) para cerrar la comparación.";
+    }
+
+    const formatItem2 = (it) => {
+      if (!it) return "";
+      if (it.id === "steam-maze") return "the maze";
+      if (it.id === "steam-dream-catcher") return "the dream catcher";
+      return it.en.startsWith("The ") ? "the " + it.en.slice(4) : it.en;
+    };
+
+    const item2Lower = formatItem2(item2);
+    const parts = [];
+    if (item1) parts.push(item1.en);
+    if (adj) parts.push(`${compDraft.verb} ${adj.en}`);
+    if (compDraft.hasThan) parts.push("than");
+    if (item2) parts.push(item2Lower);
+
+    const fullSentenceEn = isComplete ? `${item1.en} ${compDraft.verb} ${adj.en} than ${item2Lower}.` : "";
+    const verbEs = compDraft.verb === "is" ? "es" : "fue";
+    const fullSentenceEs = isComplete ? `${item1.es} ${verbEs} ${adj.es} que ${item2.es}.` : "";
+
+    if (previewOut) {
+      if (isComplete) {
+        previewOut.innerHTML = `
+          <div class="colored-sentence">
+            <span class="tok tok-blue">${escapeHtml(item1.en)}</span>
+            <span class="tok tok-orange">${escapeHtml(compDraft.verb + " " + adj.en)}</span>
+            <span class="tok tok-green">than</span>
+            <span class="tok tok-purple">${escapeHtml(item2Lower)}.</span>
+          </div>`;
+      } else {
+        previewOut.textContent = parts.length > 0 ? parts.join(" ") + " ..." : "Arma tu comparación con los 4 colores...";
+      }
+    }
+
+    if (esMeaning) {
+      esMeaning.innerHTML = isComplete
+        ? `<strong>Tu opinión en español:</strong> ${escapeHtml(fullSentenceEs)}`
+        : "Traducción de verificación: aparecerá cuando armes los 4 bloques.";
+    }
+
+    if (speakBtn) {
+      speakBtn.disabled = !isComplete;
+      speakBtn.classList.toggle("is-unlocked", isComplete);
+      speakBtn.textContent = isComplete
+        ? "🔊 Escuchar mi comparativo"
+        : "🔒 Completa los 4 bloques para escuchar";
+      speakBtn.dataset.sentenceEn = fullSentenceEn;
+    }
+
+    if (saveBtn) {
+      saveBtn.disabled = !isComplete;
+      saveBtn.dataset.sentenceEn = fullSentenceEn;
+      saveBtn.dataset.sentenceEs = fullSentenceEs;
+    }
+  }
+
+  function renderSavedComparatives() {
+    const listEl = document.getElementById("comp-saved-list");
+    const badge = document.getElementById("comp-saved-badge");
+    if (!listEl) return;
+
+    const saved = state.comparatives || [];
+    if (badge) {
+      badge.textContent =
+        saved.length >= 3
+          ? `🏆 ${saved.length} guardadas — ¡Meta de Estación 1 lograda!`
+          : `${saved.length} guardadas (Meta: 3+)`;
+    }
+
+    if (saved.length === 0) {
+      listEl.innerHTML = `<p class="helper-note" style="margin: 0;">Aún no hay comparativos guardados. Arma tu primera oración arriba (por ejemplo comparando <strong>The Maze</strong> y <strong>The Dream Catcher</strong>) y haz clic en <strong>Guardar en mi lista</strong>.</p>`;
+      return;
+    }
+
+    listEl.innerHTML = saved
+      .map((entry) => {
+        const sentenceHtml = entry.tokens
+          ? `<div class="colored-sentence">
+              <span class="tok tok-blue">${escapeHtml(entry.tokens.blue)}</span>
+              <span class="tok tok-orange">${escapeHtml(entry.tokens.orange)}</span>
+              <span class="tok tok-green">than</span>
+              <span class="tok tok-purple">${escapeHtml(entry.tokens.purple)}.</span>
+            </div>`
+          : `<strong style="font-size: 1rem;">${escapeHtml(entry.en)}</strong>`;
+
+        return `
+          <article class="saved-item">
+            <div class="saved-item-text">
+              ${sentenceHtml}
+              ${entry.es ? `<span class="warmup-es">${escapeHtml(entry.es)}</span>` : ""}
+            </div>
+            <div class="saved-item-actions">
+              <button type="button" class="btn btn-audio btn-sm" data-saved-speak="${escapeHtml(entry.en)}">🔊 Escuchar</button>
+              <button type="button" class="btn btn-danger-soft" data-saved-del="${escapeHtml(entry.id)}">Quitar</button>
+            </div>
+          </article>`;
+      })
+      .join("");
+
+    listEl.querySelectorAll("[data-saved-speak]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        window.AppSpeech.speak(btn.getAttribute("data-saved-speak"), showToast);
+      });
+    });
+
+    listEl.querySelectorAll("[data-saved-del]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-saved-del");
+        state.comparatives = (state.comparatives || []).filter((c) => c.id !== id);
+        window.AppStorage.save(state);
+        renderSavedComparatives();
+        showToast("Comparativo eliminado de la lista.");
+      });
+    });
+  }
+
+  function initStation1() {
+    renderStation1Warmups();
+    renderStation1Quiz();
+    renderStation1Builder();
+    renderSavedComparatives();
+
+    const verbWrap = document.getElementById("comp-verb-chips");
+    if (verbWrap) {
+      verbWrap.querySelectorAll("[data-comp-verb]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          compDraft.verb = btn.getAttribute("data-comp-verb") || "was";
+          renderStation1Builder();
+        });
+      });
+    }
+
+    const thanBtn = document.getElementById("comp-than-btn");
+    if (thanBtn) {
+      thanBtn.addEventListener("click", () => {
+        compDraft.hasThan = !compDraft.hasThan;
+        renderStation1Builder();
+      });
+    }
+
+    const speakBtn = document.getElementById("comp-speak-btn");
+    if (speakBtn) {
+      speakBtn.addEventListener("click", () => {
+        if (speakBtn.disabled || !speakBtn.dataset.sentenceEn) return;
+        window.AppSpeech.speak(speakBtn.dataset.sentenceEn, showToast);
+      });
+    }
+
+    const saveBtn = document.getElementById("comp-save-btn");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", () => {
+        if (saveBtn.disabled || !saveBtn.dataset.sentenceEn) return;
+        const en = saveBtn.dataset.sentenceEn;
+        const es = saveBtn.dataset.sentenceEs || "";
+        const bankItems = getAllBankItems();
+        const item1 = bankItems.find((i) => i.id === compDraft.item1Id);
+        const adj = (window.APP_DATA.comparativeAdjectives || []).find((a) => a.id === compDraft.adjId);
+        const item2 = bankItems.find((i) => i.id === compDraft.item2Id);
+        const formatItem2 = (it) => {
+      if (!it) return "";
+      if (it.id === "steam-maze") return "the maze";
+      if (it.id === "steam-dream-catcher") return "the dream catcher";
+      return it.en.startsWith("The ") ? "the " + it.en.slice(4) : it.en;
+    };
+
+    const item2Lower = formatItem2(item2);
+
+        const dup = (state.comparatives || []).some((c) => c.en.toLowerCase() === en.toLowerCase());
+        if (dup) {
+          showToast("¡Esa oración ya está en tu lista del martes!");
+          return;
+        }
+
+        state.comparatives.push({
+          id: "cmp-" + Date.now(),
+          en: en,
+          es: es,
+          tokens: item1 && adj && item2 ? {
+            blue: item1.en,
+            orange: `${compDraft.verb} ${adj.en}`,
+            purple: item2Lower
+          } : null
+        });
+        window.AppStorage.save(state);
+        renderSavedComparatives();
+        showToast("💾 ¡Comparativo guardado para el martes!");
+      });
+    }
+
+    const clearBtn = document.getElementById("comp-clear-btn");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        compDraft = { item1Id: null, verb: "was", adjId: null, hasThan: false, item2Id: null };
+        renderStation1Builder();
+      });
+    }
+
+    /* Caja opcional bilingüe para comparativos libres */
+    const customEs = document.getElementById("comp-custom-es");
+    const customEn = document.getElementById("comp-custom-en");
+    const customChips = document.getElementById("comp-custom-chips");
+    const customSaveBtn = document.getElementById("comp-custom-save-btn");
+
+    if (customEs && customEn && customChips) {
+      customEs.addEventListener("input", () => {
+        const res = window.BilingualHelper.analyze(customEs.value);
+        if (res.matches.length === 0) {
+          customChips.innerHTML = "";
+          return;
+        }
+        customChips.innerHTML = res.matches
+          .map(
+            (m) => `
+            <button type="button" class="word-chip" data-c-ins="${escapeHtml(m.en)}">
+              <span>+ ${escapeHtml(m.en)}</span>
+              <span class="es-mini">(${escapeHtml(m.displayEs)})</span>
+            </button>`
+          )
+          .join("");
+
+        customChips.querySelectorAll("[data-c-ins]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const phrase = btn.getAttribute("data-c-ins");
+            const cur = customEn.value.trim();
+            customEn.value = cur ? `${cur} ${phrase}` : phrase;
+          });
+        });
+      });
+    }
+
+    if (customSaveBtn && customEn && customEs) {
+      customSaveBtn.addEventListener("click", () => {
+        const enRaw = customEn.value.trim();
+        if (!enRaw) {
+          showToast("Escribe primero la frase en inglés para guardarla.");
+          return;
+        }
+        if (!/\bthan\b/i.test(enRaw)) {
+          showToast("Recuerda incluir la palabra 'than' (que) para que sea un comparativo completo.");
+          return;
+        }
+        const enClean = enRaw.endsWith(".") ? enRaw : enRaw + ".";
+        state.comparatives.push({
+          id: "cmp-" + Date.now(),
+          en: enClean,
+          es: customEs.value.trim(),
+          tokens: null
+        });
+        window.AppStorage.save(state);
+        customEs.value = "";
+        customEn.value = "";
+        if (customChips) customChips.innerHTML = "";
+        renderSavedComparatives();
+        showToast("💾 Frase comparativa propia guardada.");
+      });
+    }
+  }
+
   /* --- Respaldo y Reinicio --- */
   function initStorageActions() {
     const exportBtn = document.getElementById("export-json-btn");
@@ -557,8 +1090,12 @@
         state = window.AppStorage.reset();
         window.AppSpeech.setRate(state.speechRate);
         selectedPieceIds = [];
+        compDraft = { item1Id: null, verb: "was", adjId: null, hasThan: false, item2Id: null };
         renderBank();
         renderStation0Builder();
+        renderStation1Quiz();
+        renderStation1Builder();
+        renderSavedComparatives();
         showToast("Datos reiniciados correctamente.");
       });
     }
@@ -573,6 +1110,7 @@
     renderBank();
     initAddBankForm();
     initStation0Builder();
+    initStation1();
     initStorageActions();
   });
 })();

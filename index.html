@@ -40,9 +40,9 @@
         <span>🗺️ Estación 0: Mapa y Banco</span>
         <span class="tab-badge ready">Activa</span>
       </button>
-      <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-1">
+      <button type="button" class="station-tab" role="tab" aria-selected="false" data-station="station-1">
         <span>⚖️ Estación 1: Comparatives</span>
-        <span class="tab-badge">Fase 1</span>
+        <span class="tab-badge ready">Activa</span>
       </button>
       <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-2">
         <span>📰 Estación 2: Newspaper</span>
@@ -209,20 +209,178 @@
       </div>
     </section>
 
-    <!-- ==================== ESTACIONES 1 A 4 (PRÓXIMAS FASES) ==================== -->
+    <!-- ==================== ESTACIÓN 1 (ACTIVA EN FASE 1) ==================== -->
     <section id="station-1" class="station-panel" role="tabpanel">
-      <div class="card upcoming-card">
-        <div class="upcoming-icon">⚖️</div>
-        <h2>Estación 1: Comparatives Builder (Próxima Fase 1)</h2>
-        <p>Se construirá y publicará después de que revises y apruebes esta Estación 0.</p>
-        <div class="upcoming-preview-list">
-          <span>• Calentamiento rápido con <strong>Piano</strong>, <strong>Fortnite en Play</strong> y <strong>MrBeast</strong>.</span>
-          <span>• Constructor LEGO por colores (`-er than`, `more ... than`, `better than`).</span>
-          <span>• Comparativos con las actividades y fiestas guardadas en tu Estación 0.</span>
+      <!-- Bloque A: Guía de Papás + Calentamiento con Gustos de Miguel -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">⚖️ Estación 1: Comparatives (Comparar Actividades y Fiestas Culturales)</h2>
+          <span class="role-tag role-parents">1. Guía Papás + Calentamiento (1 min)</span>
         </div>
-        <div>
-          <button type="button" class="btn btn-primary" data-goto-station="station-0">Volver a Estación 0</button>
+        <p class="helper-note">
+          Explícale primero a Miguel en español cómo comparar dos cosas usando las <strong>3 reglas mágicas</strong>
+          y escucha los ejemplos con sus gustos (<strong>piano</strong>, <strong>Fortnite en Play</strong> y <strong>MrBeast</strong>).
+        </p>
+
+        <div class="rule-mini-grid">
+          <div class="rule-mini-card">
+            <h4>1. Palabra corta → pega <code>-er</code> + <code>than</code></h4>
+            <p>Palabras cortas (1 golpe o terminadas en <code>-y</code>): <strong>easy → easier than</strong>, <strong>hard → harder than</strong>, <strong>fast → faster than</strong>.</p>
+          </div>
+          <div class="rule-mini-card">
+            <h4>2. Palabra larga → pon <code>more</code> + <code>than</code></h4>
+            <p>Palabras largas (2+ golpes): nunca llevan <code>-er</code>. Usa <strong>more difficult than</strong>, <strong>more colorful than</strong>, <strong>more interesting than</strong>.</p>
+          </div>
+          <div class="rule-mini-card">
+            <h4>3. Irregular estrella → <code>better than</code></h4>
+            <p>La palabra <strong>good</strong> (bueno) cambia por completo a <strong>better than</strong> (mejor que). ¡Nunca se dice "gooder"!</p>
+          </div>
         </div>
+
+        <h4 style="margin: 0 0 10px; font-size: 0.96rem;">🔥 Calentamiento rápido con los gustos de Miguel (escucha y mira los colores):</h4>
+        <div class="warmup-grid" id="st1-warmup-grid"></div>
+      </div>
+
+      <!-- Bloque B: Mini-Entrenador Interactivo (-er vs more vs better) -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🎯 Reto Rápido: ¿<code>-er</code>, <code>more</code> o <code>better</code>?</h3>
+          <span class="role-tag role-miguel" id="st1-quiz-badge">0 de 6 dominados</span>
+        </div>
+        <p class="helper-note">
+          Antes de armar tus oraciones del examen, ayuda a Miguel a elegir la forma correcta de los 6 adjetivos clave de la Miss.
+        </p>
+        <div class="quiz-grid" id="st1-quiz-grid"></div>
+      </div>
+
+      <!-- Bloque C: Constructor LEGO de Comparativos STEAM y Fiestas Culturales -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🧩 Constructor LEGO: Arma tus Comparativos para el Martes</h3>
+          <span class="role-tag role-miguel">Espacio de Opinión de Miguel</span>
+        </div>
+        <p class="helper-note">
+          Sigue los <strong>4 colores en orden</strong> usando las actividades reales del colegio (<strong>The Maze</strong>, <strong>The Dream Catcher</strong>
+          y cualquier fiesta cultural que hayan agregado en la Estación 0). Cuando el comparativo esté completo y en orden, se activa el audio y podrás guardarlo.
+        </p>
+
+        <div class="bilingual-split">
+          <div>
+            <!-- Paso 1: Azul -->
+            <div class="comp-step-block">
+              <div class="comp-step-title">
+                <span style="color: var(--lego-blue);">1. 🟦 Bloque Azul: Elige la Actividad o Fiesta 1</span>
+                <button type="button" class="btn btn-secondary btn-sm" data-goto-station="station-0">+ Agregar fiesta en Estación 0</button>
+              </div>
+              <div class="chip-row" id="comp-item1-chips" style="margin-bottom: 0;"></div>
+            </div>
+
+            <!-- Paso 2: Naranja (Verbo + Comparativo) -->
+            <div class="comp-step-block">
+              <div class="comp-step-title">
+                <span style="color: var(--lego-orange);">2. 🟧 Bloque Naranja: Verbo + Adjetivo Comparativo</span>
+              </div>
+              <div class="adj-group-label">Tiempo verbal (pasado para STEAM / presente para fiestas):</div>
+              <div class="chip-row" id="comp-verb-chips" style="margin-top: 4px;">
+                <button type="button" class="lego-piece lego-piece-orange" data-comp-verb="was">
+                  <span>was</span> <span class="es-mini">(fue — STEAM pasado)</span>
+                </button>
+                <button type="button" class="lego-piece lego-piece-orange" data-comp-verb="is">
+                  <span>is</span> <span class="es-mini">(es — fiesta cultural)</span>
+                </button>
+              </div>
+
+              <div class="adj-group-label">Cortos (<code>-er</code>):</div>
+              <div class="chip-row" id="comp-adj-short" style="margin-top: 4px;"></div>
+
+              <div class="adj-group-label">Largos (<code>more ...</code>):</div>
+              <div class="chip-row" id="comp-adj-long" style="margin-top: 4px;"></div>
+
+              <div class="adj-group-label">Irregular:</div>
+              <div class="chip-row" id="comp-adj-irregular" style="margin-top: 4px; margin-bottom: 0;"></div>
+            </div>
+
+            <!-- Paso 3: Verde (than) -->
+            <div class="comp-step-block">
+              <div class="comp-step-title">
+                <span style="color: var(--lego-green);">3. 🟩 Bloque Verde: Conector obligatorio para comparar</span>
+              </div>
+              <div class="chip-row" style="margin-bottom: 0;">
+                <button type="button" class="lego-piece lego-piece-green" id="comp-than-btn">
+                  <span>+ than</span> <span class="es-mini">(que)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Paso 4: Morado -->
+            <div class="comp-step-block">
+              <div class="comp-step-title">
+                <span style="color: var(--lego-purple);">4. 🟪 Bloque Morado: Elige la Actividad o Fiesta 2</span>
+              </div>
+              <div class="chip-row" id="comp-item2-chips" style="margin-bottom: 0;"></div>
+            </div>
+
+            <!-- Opción bilingüe adicional (si Miguel quiere añadir otro comparativo propio en español/inglés) -->
+            <details class="neuro-details">
+              <summary>
+                <span>✏️ ¿Miguel quiere escribir otra comparación propia en Español / Inglés? (Opcional)</span>
+                <span>▼ Abrir</span>
+              </summary>
+              <div class="custom-note-box">
+                <div class="field" style="margin-bottom: 8px;">
+                  <label for="comp-custom-es">Idea de Miguel en Español (detecta palabras A1)</label>
+                  <input type="text" id="comp-custom-es" placeholder="Ej. La Feria de las Flores es más colorida que Halloween">
+                </div>
+                <div class="chip-row" id="comp-custom-chips"></div>
+                <div class="field" style="margin-bottom: 10px;">
+                  <label for="comp-custom-en">Frase final en Inglés A1 (debe incluir <code>than</code>)</label>
+                  <input type="text" id="comp-custom-en" placeholder="Ej. Flower Fair is more colorful than Halloween.">
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="comp-custom-save-btn">+ Guardar esta frase en la lista</button>
+              </div>
+            </details>
+          </div>
+
+          <!-- Vista Previa en Vivo (Columna derecha sticky en desktop) -->
+          <div>
+            <div class="preview-box" id="comp-preview-box">
+              <div class="preview-label">Vista Previa en Vivo (Inglés A1)</div>
+              <div class="validation-badge status-idle" id="comp-status-badge">
+                🧩 Elige el Bloque Azul (Actividad 1) para empezar.
+              </div>
+
+              <div class="lego-slots-bar" id="comp-slots-bar"></div>
+              <div class="preview-output" id="comp-preview-output">...</div>
+              <div class="spanish-meaning-box" id="comp-spanish-meaning">
+                Traducción de verificación: aparecerá cuando armes los 4 bloques.
+              </div>
+
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button type="button" class="btn btn-audio" id="comp-speak-btn" disabled>
+                  🔒 Completa los 4 bloques para escuchar
+                </button>
+                <button type="button" class="btn btn-primary" id="comp-save-btn" disabled>
+                  💾 Guardar en mi lista
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="comp-clear-btn">
+                  🔄 Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista Guardada de Comparativos de Miguel -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">⭐ Mis Oraciones Comparativas Guardadas (Para el Examen del Martes)</h3>
+          <span class="role-tag role-both" id="comp-saved-badge">0 guardadas (Meta: 3+)</span>
+        </div>
+        <p class="helper-note">
+          Estas frases se guardan automáticamente y aparecerán en el <strong>Entrenador del Martes</strong> y en tu <strong>Hoja Imprimible</strong> (Estación 4).
+        </p>
+        <div class="saved-list" id="comp-saved-list"></div>
       </div>
     </section>
 

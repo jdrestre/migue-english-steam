@@ -903,6 +903,285 @@ details.neuro-details summary::-webkit-details-marker {
   background: #065f46;
 }
 
+/* ==================== ESTACIÓN 1: COMPARATIVES BUILDER ==================== */
+.rule-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.rule-mini-card {
+  border-radius: 12px;
+  padding: 13px 14px;
+  background: var(--surface-soft);
+  border: 2px solid var(--border);
+}
+
+.rule-mini-card h4 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  color: var(--lego-orange);
+}
+
+.rule-mini-card p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text);
+}
+
+.warmup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.warmup-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid var(--lego-purple-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.warmup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--lego-purple);
+  background: var(--lego-purple-bg);
+  padding: 3px 10px;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.colored-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  line-height: 1.4;
+}
+
+.tok {
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.92rem;
+  border: 1.5px solid;
+}
+
+.tok-blue { background: var(--lego-blue-bg); border-color: var(--lego-blue-border); color: var(--lego-blue); }
+.tok-orange { background: var(--lego-orange-bg); border-color: var(--lego-orange-border); color: var(--lego-orange); }
+.tok-green { background: var(--lego-green-bg); border-color: var(--lego-green-border); color: var(--lego-green); }
+.tok-purple { background: var(--lego-purple-bg); border-color: var(--lego-purple-border); color: var(--lego-purple); }
+
+.warmup-es {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Mini-Entrenador de Adjetivos */
+.quiz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+}
+
+.quiz-card {
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--surface-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.quiz-card.is-solved {
+  border-color: var(--lego-green);
+  background: var(--lego-green-bg);
+}
+
+.quiz-word {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.quiz-word strong {
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.quiz-word span {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quiz-opt-btn {
+  width: 100%;
+  text-align: left;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  min-height: 40px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.quiz-opt-btn:hover:not(:disabled) {
+  border-color: var(--lego-blue);
+  background: var(--lego-blue-bg);
+}
+
+.quiz-opt-btn.is-right {
+  background: #047857;
+  border-color: #065f46;
+  color: #ffffff;
+}
+
+.quiz-opt-btn.is-wrong {
+  background: var(--lego-orange-bg);
+  border-color: var(--lego-orange);
+  color: var(--lego-orange);
+}
+
+.quiz-feedback {
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-height: 20px;
+  color: var(--text-muted);
+}
+
+.quiz-feedback.ok { color: var(--lego-green); }
+.quiz-feedback.retry { color: var(--lego-orange); }
+
+/* Constructor LEGO de Comparativos */
+.comp-step-block {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  background: #ffffff;
+}
+
+.comp-step-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.adj-group-label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 8px 0 5px;
+}
+
+.lego-piece.is-selected {
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.22);
+  transform: translateY(-1px);
+}
+
+.lego-piece-blue.is-selected { background: var(--lego-blue); color: #ffffff; }
+.lego-piece-orange.is-selected { background: var(--lego-orange); color: #ffffff; }
+.lego-piece-green.is-selected { background: var(--lego-green); color: #ffffff; }
+.lego-piece-purple.is-selected { background: var(--lego-purple); color: #ffffff; }
+.lego-piece.is-selected .es-mini { color: rgba(255, 255, 255, 0.9); }
+
+.lego-slots-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.lego-slot {
+  border: 2px dashed #94a3b8;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.lego-slot.filled-blue { border-style: solid; border-color: var(--lego-blue); background: var(--lego-blue-bg); color: var(--lego-blue); }
+.lego-slot.filled-orange { border-style: solid; border-color: var(--lego-orange); background: var(--lego-orange-bg); color: var(--lego-orange); }
+.lego-slot.filled-green { border-style: solid; border-color: var(--lego-green); background: var(--lego-green-bg); color: var(--lego-green); }
+.lego-slot.filled-purple { border-style: solid; border-color: var(--lego-purple); background: var(--lego-purple-bg); color: var(--lego-purple); }
+
+.spanish-meaning-box {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.saved-list {
+  display: grid;
+  gap: 10px;
+}
+
+.saved-item {
+  border: 2px solid var(--lego-green-border);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.saved-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.saved-item-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.custom-note-box {
+  margin-top: 12px;
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 12px;
+}
+
 /* Upcoming Station Placeholder */
 .upcoming-card {
   text-align: center;
