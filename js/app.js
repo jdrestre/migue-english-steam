@@ -320,99 +320,222 @@
     }
   }
 
-  /* --- Estación 0: Probador Bilingüe Interactivo para Miguel --- */
-  function initBilingualSandbox() {
-    const inputEs = document.getElementById("sandbox-input-es");
-    const inputEn = document.getElementById("sandbox-input-en");
-    const chipsBox = document.getElementById("sandbox-chips");
-    const previewOut = document.getElementById("sandbox-preview-output");
-    const speakBtn = document.getElementById("sandbox-speak-btn");
+  /* --- Estación 0: Constructor LEGO por Colores (Solo Ejemplos Planteados) --- */
+  let activeChallengeIdx = 0;
+  let selectedPieceIds = [];
 
-    if (!inputEs || !inputEn || !chipsBox || !previewOut) return;
+  const COLOR_LABELS = {
+    blue: "🟦 Azul",
+    orange: "🟧 Naranja",
+    green: "🟩 Verde",
+    purple: "🟪 Morado"
+  };
 
-    inputEs.value = state.sandboxEs || "";
-    inputEn.value = state.sandboxEn || "";
+  function getActiveChallenge() {
+    const list = window.APP_DATA.station0Challenges || [];
+    return list[activeChallengeIdx] || list[0];
+  }
 
-    function updatePreview() {
-      const enText = inputEn.value.trim();
-      const esText = inputEs.value.trim();
-      if (enText) {
-        previewOut.textContent = enText;
-      } else if (esText) {
-        previewOut.textContent = `Idea de Miguel: "${esText}" (usa los chips o escribe la versión en inglés abajo)`;
-      } else {
-        previewOut.textContent = "Escribe arriba una idea corta (ej. 'El laberinto fue divertido') o haz clic en un botón de ejemplo.";
-      }
+  function renderStation0Builder() {
+    const challenges = window.APP_DATA.station0Challenges || [];
+    const challenge = getActiveChallenge();
+    const selectorRow = document.getElementById("challenge-selector-row");
+    const spanishText = document.getElementById("builder-spanish-text");
+    const colorGuide = document.getElementById("builder-color-guide");
+    const pieceBank = document.getElementById("builder-piece-bank");
+    const assemblyZone = document.getElementById("builder-assembly-zone");
+    const previewBox = document.getElementById("builder-preview-box");
+    const statusBadge = document.getElementById("builder-status-badge");
+    const previewOutput = document.getElementById("builder-preview-output");
+    const speakBtn = document.getElementById("builder-speak-btn");
+    const progressBadge = document.getElementById("builder-progress-badge");
+
+    if (!challenge || !selectorRow || !pieceBank || !assemblyZone) return;
+
+    const solvedIds = state.completedStation0Challenges || [];
+    if (progressBadge) {
+      progressBadge.textContent = `${solvedIds.length} de ${challenges.length} retos completados`;
     }
 
-    function renderSuggestions() {
-      const result = window.BilingualHelper.analyze(inputEs.value);
-      if (result.matches.length === 0) {
-        chipsBox.innerHTML = `<span class="helper-note">Tip: prueba escribir palabras como <strong>laberinto</strong>, <strong>atrapasueños</strong>, <strong>divertido</strong>, <strong>fácil</strong>, <strong>difícil</strong> o <strong>piano</strong>.</span>`;
-        return;
-      }
+    /* 1. Botones de los ejemplos planteados */
+    selectorRow.innerHTML = challenges
+      .map((ch, idx) => {
+        const isSolved = solvedIds.includes(ch.id);
+        const isActive = idx === activeChallengeIdx;
+        return `
+          <button type="button" class="challenge-tab ${isActive ? "is-active" : ""} ${isSolved ? "is-solved" : ""}" data-ch-idx="${idx}">
+            ${isSolved ? "✅ " : ""}${escapeHtml(ch.label)}
+          </button>`;
+      })
+      .join("");
 
-      chipsBox.innerHTML = result.matches
+    selectorRow.querySelectorAll("[data-ch-idx]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const nextIdx = Number(btn.getAttribute("data-ch-idx"));
+        if (nextIdx === activeChallengeIdx) return;
+        activeChallengeIdx = nextIdx;
+        selectedPieceIds = [];
+        renderStation0Builder();
+      });
+    });
+
+    /* 2. Frase en Español + Pista de secuencia de colores LEGO */
+    if (spanishText) spanishText.textContent = challenge.es;
+    if (colorGuide) {
+      const pills = challenge.pieces
+        .map((p) => `<span class="guide-pill guide-${p.color}">${COLOR_LABELS[p.color]} (${escapeHtml(p.role)})</span>`)
+        .join("<span>→</span>");
+      colorGuide.innerHTML = `<span>Orden de colores:</span> ${pills}`;
+    }
+
+    /* 3. Banco de bloques desordenados (sin revelar la traducción en inglés) */
+    const orderedIndices =
+      challenge.shuffleOrder && challenge.shuffleOrder.length === challenge.pieces.length
+        ? challenge.shuffleOrder
+        : challenge.pieces.map((_, i) => i);
+
+    pieceBank.innerHTML = orderedIndices
+      .map((pieceIdx) => {
+        const piece = challenge.pieces[pieceIdx];
+        const isUsed = selectedPieceIds.includes(piece.id);
+        return `
+          <button type="button" class="lego-piece lego-piece-${piece.color}" data-pick-piece="${piece.id}" ${isUsed ? "disabled" : ""}>
+            <span>+ ${escapeHtml(piece.en)}</span>
+            <span class="es-mini">(${escapeHtml(piece.es)})</span>
+          </button>`;
+      })
+      .join("");
+
+    pieceBank.querySelectorAll("[data-pick-piece]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const pid = btn.getAttribute("data-pick-piece");
+        if (!selectedPieceIds.includes(pid)) {
+          selectedPieceIds.push(pid);
+          renderStation0Builder();
+        }
+      });
+    });
+
+    /* 4. Zona de armado en inglés (con piezas seleccionadas) */
+    const selectedPieces = selectedPieceIds
+      .map((pid) => challenge.pieces.find((p) => p.id === pid))
+      .filter(Boolean);
+
+    if (selectedPieces.length === 0) {
+      assemblyZone.innerHTML = `<span class="assembly-placeholder">Aquí aparecerán las piezas de inglés a medida que Miguel las elija...</span>`;
+    } else {
+      assemblyZone.innerHTML = selectedPieces
         .map(
-          (m) => `
-          <button type="button" class="word-chip" data-insert-en="${escapeHtml(m.en)}">
-            <span>+ ${escapeHtml(m.en)}</span>
-            <span class="es-mini">(${escapeHtml(m.displayEs)})</span>
+          (piece) => `
+          <button type="button" class="lego-piece lego-piece-${piece.color}" data-remove-piece="${piece.id}" title="Haz clic para devolver esta pieza">
+            <span>${escapeHtml(piece.en)}</span>
+            <span class="es-mini">✕</span>
           </button>`
         )
         .join("");
 
-      chipsBox.querySelectorAll("[data-insert-en]").forEach((btn) => {
+      assemblyZone.querySelectorAll("[data-remove-piece]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const phrase = btn.getAttribute("data-insert-en");
-          const current = inputEn.value.trim();
-          inputEn.value = current ? `${current} ${phrase}` : phrase;
-          state.sandboxEn = inputEn.value;
-          window.AppStorage.save(state);
-          updatePreview();
+          const pid = btn.getAttribute("data-remove-piece");
+          selectedPieceIds = selectedPieceIds.filter((id) => id !== pid);
+          renderStation0Builder();
         });
       });
     }
 
-    inputEs.addEventListener("input", () => {
-      state.sandboxEs = inputEs.value;
-      window.AppStorage.save(state);
-      renderSuggestions();
-      updatePreview();
-    });
+    /* 5. Validación de orden exacto y bloqueo/desbloqueo de audio */
+    const total = challenge.pieces.length;
+    let isPrefixValid = true;
+    for (let i = 0; i < selectedPieces.length; i += 1) {
+      if (selectedPieces[i].id !== challenge.pieces[i].id) {
+        isPrefixValid = false;
+        break;
+      }
+    }
 
-    inputEn.addEventListener("input", () => {
-      state.sandboxEn = inputEn.value;
-      window.AppStorage.save(state);
-      updatePreview();
-    });
+    const isCompleteAndCorrect = isPrefixValid && selectedPieces.length === total;
 
-    document.querySelectorAll("[data-sandbox-demo]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        inputEs.value = btn.getAttribute("data-demo-es") || "";
-        inputEn.value = btn.getAttribute("data-demo-en") || "";
-        state.sandboxEs = inputEs.value;
-        state.sandboxEn = inputEn.value;
+    assemblyZone.classList.remove("is-correct", "is-wrong");
+    previewBox.classList.remove("is-correct", "is-wrong");
+    statusBadge.classList.remove("status-idle", "status-progress", "status-wrong", "status-correct");
+
+    if (selectedPieces.length === 0) {
+      statusBadge.classList.add("status-idle");
+      statusBadge.textContent = "🧩 Selecciona los bloques de colores en orden para armar la frase.";
+      previewOutput.textContent = "Esperando los bloques de Miguel...";
+    } else if (isCompleteAndCorrect) {
+      assemblyZone.classList.add("is-correct");
+      previewBox.classList.add("is-correct");
+      statusBadge.classList.add("status-correct");
+      statusBadge.textContent = "✅ ¡Correcto Miguel! Orden perfecto. Ya puedes escuchar tu frase en inglés.";
+      previewOutput.textContent = challenge.targetEn;
+
+      if (!solvedIds.includes(challenge.id)) {
+        state.completedStation0Challenges = solvedIds.concat([challenge.id]);
         window.AppStorage.save(state);
-        renderSuggestions();
-        updatePreview();
-        showToast("Ejemplo cargado en el espacio de Miguel.");
-      });
-    });
+        if (progressBadge) {
+          progressBadge.textContent = `${state.completedStation0Challenges.length} de ${challenges.length} retos completados`;
+        }
+        const activeTab = selectorRow.querySelector(`.challenge-tab[data-ch-idx="${activeChallengeIdx}"]`);
+        if (activeTab && !activeTab.textContent.includes("✅")) {
+          activeTab.classList.add("is-solved");
+          activeTab.textContent = `✅ ${challenge.label}`;
+        }
+        showToast("🎉 ¡Frase armada correctamente! Oprime el botón de audio para escucharla.");
+      }
+    } else if (isPrefixValid) {
+      const nextPiece = challenge.pieces[selectedPieces.length];
+      statusBadge.classList.add("status-progress");
+      statusBadge.textContent = `⏳ ¡Muy bien! Llevas ${selectedPieces.length} de ${total}. Sigue el bloque ${COLOR_LABELS[nextPiece.color]}.`;
+      previewOutput.textContent = selectedPieces.map((p) => p.en).join(" ") + " ...";
+    } else {
+      assemblyZone.classList.add("is-wrong");
+      previewBox.classList.add("is-wrong");
+      statusBadge.classList.add("status-wrong");
+      statusBadge.textContent = "💡 Revisa el orden de los colores arriba. Haz clic en una pieza armada para devolverla.";
+      previewOutput.textContent = selectedPieces.map((p) => p.en).join(" ");
+    }
 
     if (speakBtn) {
-      speakBtn.addEventListener("click", () => {
-        const text = inputEn.value.trim();
-        if (!text) {
-          showToast("Primero escribe o carga una frase en inglés para escucharla.");
-          return;
-        }
-        window.AppSpeech.speak(text, showToast);
+      speakBtn.disabled = !isCompleteAndCorrect;
+      speakBtn.classList.toggle("is-unlocked", isCompleteAndCorrect);
+      speakBtn.textContent = isCompleteAndCorrect
+        ? "🔊 Escuchar frase armada en inglés"
+        : "🔒 Arma la frase correcta para escuchar";
+    }
+  }
+
+  function initStation0Builder() {
+    const undoBtn = document.getElementById("builder-undo-btn");
+    const clearBtn = document.getElementById("builder-clear-btn");
+    const speakBtn = document.getElementById("builder-speak-btn");
+
+    if (undoBtn) {
+      undoBtn.addEventListener("click", () => {
+        if (selectedPieceIds.length === 0) return;
+        selectedPieceIds.pop();
+        renderStation0Builder();
       });
     }
 
-    renderSuggestions();
-    updatePreview();
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        selectedPieceIds = [];
+        renderStation0Builder();
+      });
+    }
+
+    if (speakBtn) {
+      speakBtn.addEventListener("click", () => {
+        if (speakBtn.disabled) return;
+        const challenge = getActiveChallenge();
+        if (challenge) {
+          window.AppSpeech.speak(challenge.targetEn, showToast);
+        }
+      });
+    }
+
+    renderStation0Builder();
   }
 
   /* --- Respaldo y Reinicio --- */
@@ -433,8 +556,9 @@
         if (!ok) return;
         state = window.AppStorage.reset();
         window.AppSpeech.setRate(state.speechRate);
+        selectedPieceIds = [];
         renderBank();
-        initBilingualSandbox();
+        renderStation0Builder();
         showToast("Datos reiniciados correctamente.");
       });
     }
@@ -448,7 +572,7 @@
     renderStation0Static();
     renderBank();
     initAddBankForm();
-    initBilingualSandbox();
+    initStation0Builder();
     initStorageActions();
   });
 })();

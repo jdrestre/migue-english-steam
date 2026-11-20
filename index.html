@@ -148,53 +148,50 @@
         </div>
       </div>
 
-      <!-- Probador Bilingüe Interactivo para Miguel -->
+      <!-- Constructor LEGO Interactivo por Colores (Solo Ejemplos Planteados) -->
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">✨ Prueba el Puente Bilingüe de Miguel (Español ↔ Inglés A1)</h3>
-          <span class="role-tag role-miguel">Espacio Interactivo de Miguel</span>
+          <h3 class="card-title">✨ Prueba el Puente Bilingüe de Miguel (Arma la Frase por Colores LEGO)</h3>
+          <span class="role-tag role-miguel" id="builder-progress-badge">0 de 4 retos completados</span>
         </div>
         <p class="helper-note">
-          Prueba cómo funcionarán los espacios de opinión de Miguel: él puede escribir en español, hacer clic en las
-          palabras sugeridas en inglés o escribir directamente en inglés y escuchar cómo suena.
+          Elige uno de los ejemplos planteados. Lee la frase en español y selecciona los bloques de colores
+          en el orden correcto para armar la frase en inglés. Cuando quede correcta, se activará el botón de audio.
         </p>
 
-        <div class="chip-row">
-          <button type="button" class="word-chip" data-sandbox-demo
-            data-demo-es="El laberinto fue más difícil que el atrapasueños"
-            data-demo-en="The maze was more difficult than the dream catcher.">
-            Ejemplo STEAM: Maze vs Dream Catcher
-          </button>
-          <button type="button" class="word-chip" data-sandbox-demo
-            data-demo-es="Tocar piano es divertido y creativo"
-            data-demo-en="Playing the piano is fun and creative.">
-            Ejemplo Gustos: Piano 🎹
-          </button>
-          <button type="button" class="word-chip" data-sandbox-demo
-            data-demo-es="Los retos de MrBeast son emocionantes"
-            data-demo-en="MrBeast challenges are exciting.">
-            Ejemplo Gustos: MrBeast ▶️
-          </button>
-        </div>
+        <div class="chip-row" id="challenge-selector-row"></div>
 
         <div class="bilingual-split">
           <div>
-            <div class="field" style="margin-bottom: 10px;">
-              <label for="sandbox-input-es">1. Idea de Miguel (Español o Inglés)</label>
-              <textarea id="sandbox-input-es" rows="2" placeholder="Ej. El atrapasueños fue fácil y divertido..."></textarea>
+            <div class="spanish-prompt-box">
+              <div class="preview-label" style="margin-bottom: 4px;">1. Frase en Español</div>
+              <p class="spanish-sentence" id="builder-spanish-text"></p>
+              <div class="color-guide-row" id="builder-color-guide"></div>
             </div>
-            <div class="chip-row" id="sandbox-chips"></div>
+
+            <div class="field" style="margin-bottom: 10px;">
+              <label>2. Haz clic en las partes en orden (Colores LEGO)</label>
+              <div class="chip-row" id="builder-piece-bank" style="margin-top: 6px;"></div>
+            </div>
+
             <div class="field">
-              <label for="sandbox-input-en">2. Resultado en Inglés A1 (Editable)</label>
-              <textarea id="sandbox-input-en" rows="2" placeholder="Aquí se arma la frase en inglés..."></textarea>
+              <label>3. Frase en Inglés armada por Miguel (clic en un bloque para quitarlo)</label>
+              <div class="assembly-zone" id="builder-assembly-zone"></div>
+              <div class="assembly-controls">
+                <button type="button" class="btn btn-secondary btn-sm" id="builder-undo-btn">↩️ Quitar última</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="builder-clear-btn">🔄 Reiniciar frase</button>
+              </div>
             </div>
           </div>
 
-          <div class="preview-box">
+          <div class="preview-box" id="builder-preview-box">
             <div class="preview-label">Vista Previa en Vivo (Inglés A1)</div>
-            <div class="preview-output" id="sandbox-preview-output"></div>
-            <button type="button" class="btn btn-audio btn-sm" id="sandbox-speak-btn">
-              🔊 Escuchar frase de Miguel
+            <div class="validation-badge status-idle" id="builder-status-badge">
+              🧩 Selecciona los bloques de colores en orden para armar la frase.
+            </div>
+            <div class="preview-output" id="builder-preview-output">...</div>
+            <button type="button" class="btn btn-audio" id="builder-speak-btn" disabled>
+              🔒 Arma la frase correcta para escuchar
             </button>
           </div>
         </div>

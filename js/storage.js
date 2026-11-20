@@ -7,8 +7,7 @@ window.AppStorage = (function () {
     version: 1,
     speechRate: 0.85,
     customItems: [],
-    sandboxEs: "",
-    sandboxEn: "",
+    completedStation0Challenges: [],
     /* Espacios reservados para Estaciones 1 a 4 */
     comparatives: [],
     newspaper: {},

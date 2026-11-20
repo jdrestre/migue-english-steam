@@ -42,25 +42,81 @@ window.APP_DATA = {
       cls: "lego-blue",
       title: "Azul: Cosa 1 / Sujeto / Palabra Llave",
       desc: "Quién hace la acción, la primera actividad o la pista clave de la pregunta.",
-      example: "The Maze / I / favorite task"
+      example: "The Maze / Playing the piano / MrBeast challenges"
     },
     {
       cls: "lego-orange",
-      title: "Naranja: Acción en Pasado / Comparativo",
-      desc: "El verbo en Past Simple o el adjetivo que compara dos cosas.",
-      example: "created / easier than / more difficult than"
+      title: "Naranja: Acción / Verbo / Comparativo",
+      desc: "El verbo (is, are, was, created) o el adjetivo comparativo.",
+      example: "is / are / was more difficult / created"
     },
     {
       cls: "lego-green",
       title: "Verde: Puente / Conector",
-      desc: "Palabras que unen ideas o explican el porqué en inglés.",
-      example: "than / because / First, Then, Finally"
+      desc: "Palabras que unen ideas, comparan o explican el porqué en inglés.",
+      example: "than / and / because / First, Then, Finally"
     },
     {
       cls: "lego-purple",
       title: "Morado: Cosa 2 / Opinión de Miguel",
-      desc: "El segundo elemento a comparar o la razón personal que elige Miguel.",
-      example: "the dream catcher / it was creative"
+      desc: "El segundo elemento a comparar o la cualidad/opinión que elige Miguel.",
+      example: "the dream catcher / fun / creative / exciting"
+    }
+  ],
+
+  /* Retos guiados de la Estación 0 (Solo ejemplos planteados para armar por colores LEGO) */
+  station0Challenges: [
+    {
+      id: "ch-steam-maze",
+      label: "STEAM: Maze vs Dream Catcher",
+      es: "El laberinto fue más difícil que el atrapasueños.",
+      targetEn: "The maze was more difficult than the dream catcher.",
+      pieces: [
+        { id: "p1", en: "The maze", es: "El laberinto", color: "blue", role: "Cosa 1" },
+        { id: "p2", en: "was more difficult", es: "fue más difícil", color: "orange", role: "Pasado + Comparativo" },
+        { id: "p3", en: "than", es: "que", color: "green", role: "Conector" },
+        { id: "p4", en: "the dream catcher", es: "el atrapasueños", color: "purple", role: "Cosa 2" }
+      ],
+      shuffleOrder: [2, 3, 0, 1]
+    },
+    {
+      id: "ch-piano",
+      label: "Gustos: Piano 🎹",
+      es: "Tocar piano es divertido y creativo.",
+      targetEn: "Playing the piano is fun and creative.",
+      pieces: [
+        { id: "p1", en: "Playing the piano", es: "Tocar piano", color: "blue", role: "Sujeto" },
+        { id: "p2", en: "is", es: "es", color: "orange", role: "Acción" },
+        { id: "p3", en: "fun", es: "divertido", color: "purple", role: "Opinión 1" },
+        { id: "p4", en: "and", es: "y", color: "green", role: "Conector" },
+        { id: "p5", en: "creative", es: "creativo", color: "purple", role: "Opinión 2" }
+      ],
+      shuffleOrder: [3, 4, 1, 0, 2]
+    },
+    {
+      id: "ch-fortnite",
+      label: "Gustos: Fortnite 🎮",
+      es: "Jugar Fortnite en Play es más emocionante que las tareas.",
+      targetEn: "Playing Fortnite on Play is more exciting than homework.",
+      pieces: [
+        { id: "p1", en: "Playing Fortnite on Play", es: "Jugar Fortnite en Play", color: "blue", role: "Cosa 1" },
+        { id: "p2", en: "is more exciting", es: "es más emocionante", color: "orange", role: "Comparativo" },
+        { id: "p3", en: "than", es: "que", color: "green", role: "Conector" },
+        { id: "p4", en: "homework", es: "las tareas", color: "purple", role: "Cosa 2" }
+      ],
+      shuffleOrder: [1, 3, 2, 0]
+    },
+    {
+      id: "ch-mrbeast",
+      label: "Gustos: MrBeast ▶️",
+      es: "Los retos de MrBeast son emocionantes.",
+      targetEn: "MrBeast challenges are exciting.",
+      pieces: [
+        { id: "p1", en: "MrBeast challenges", es: "Los retos de MrBeast", color: "blue", role: "Sujeto" },
+        { id: "p2", en: "are", es: "son", color: "orange", role: "Acción" },
+        { id: "p3", en: "exciting", es: "emocionantes", color: "purple", role: "Opinión" }
+      ],
+      shuffleOrder: [2, 0, 1]
     }
   ],
 
