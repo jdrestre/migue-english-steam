@@ -37,23 +37,23 @@
   <nav class="station-nav-wrap" aria-label="Estaciones de la Misión STEAM">
     <div class="container station-nav" role="tablist">
       <button type="button" class="station-tab is-active" role="tab" aria-selected="true" data-station="station-0">
-        <span>🗺️ Estación 0: Mapa y Banco</span>
+        <span>🗺️ 0. Mapa y Banco</span>
         <span class="tab-badge ready">Activa</span>
       </button>
       <button type="button" class="station-tab" role="tab" aria-selected="false" data-station="station-1">
-        <span>⚖️ Estación 1: Comparatives</span>
+        <span>⚖️ 1. Comparatives</span>
         <span class="tab-badge ready">Activa</span>
       </button>
-      <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-2">
-        <span>📰 Estación 2: Newspaper</span>
-        <span class="tab-badge">Fase 2</span>
+      <button type="button" class="station-tab" role="tab" aria-selected="false" data-station="station-2">
+        <span>📰 2. Newspaper</span>
+        <span class="tab-badge ready">Activa</span>
       </button>
       <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-3">
-        <span>💬 Estación 3: 5 Preguntas</span>
+        <span>💬 3. 5 Preguntas</span>
         <span class="tab-badge">Fase 3</span>
       </button>
       <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-4">
-        <span>🏆 Estación 4: Reto Martes</span>
+        <span>🏆 4. Reto Martes</span>
         <span class="tab-badge">Fase 4</span>
       </button>
     </div>
@@ -384,18 +384,283 @@
       </div>
     </section>
 
+    <!-- ==================== ESTACIÓN 2 (ACTIVA EN FASE 2) ==================== -->
     <section id="station-2" class="station-panel" role="tabpanel">
-      <div class="card upcoming-card">
-        <div class="upcoming-icon">📰</div>
-        <h2>Estación 2: STEAM Newspaper + Past Simple (Próxima Fase 2)</h2>
-        <p>Se construirá y publicará al aprobar la Estación 1.</p>
-        <div class="upcoming-preview-list">
-          <span>• Calentamiento de verbos en pasado con gustos de Miguel (`played`, `practiced`, `watched`).</span>
-          <span>• Taller guiado de las 5 partes del periódico (`NAME`, `TITLE`, `WHO`, `WHERE`, `WHAT DID YOU DO`).</span>
-          <span>• Vista previa de portada de periódico escolar en tiempo real.</span>
+      <!-- Bloque A: Calentamiento Neuroeducativo Past Simple (Máquina del Tiempo con Gustos de Miguel) -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📰 Estación 2: STEAM Newspaper &amp; Past Simple (El Periódico del Martes)</h2>
+          <span class="role-tag role-parents">1. Guía Papás + Máquina del Tiempo (1 min)</span>
         </div>
-        <div>
-          <button type="button" class="btn btn-primary" data-goto-station="station-0">Volver a Estación 0</button>
+        <p class="helper-note">
+          La Miss pide escribir un periódico con <strong>5 partes obligatorias</strong> usando <strong>Pasado Simple (Past Simple)</strong>
+          porque el proyecto STEAM ya ocurrió. Activa primero la <strong>Máquina del Tiempo</strong> con los gustos de Miguel
+          (<strong>Fortnite</strong>, <strong>Piano</strong> y <strong>MrBeast</strong>) para ver cómo cambian los verbos al pasado.
+        </p>
+
+        <div class="tm-header-bar" id="tm-header-bar">
+          <div>
+            <strong id="tm-mode-title">⏰ Modo Actual: HOY — PRESENTE</strong>
+            <p id="tm-mode-sub">Oprime el botón para viajar a AYER y ver cómo los verbos cambian a Naranja (Past Simple).</p>
+          </div>
+          <button type="button" class="tm-toggle-btn" id="tm-toggle-btn">
+            ⏳ Viajar al Pasado (Past Simple)
+          </button>
+        </div>
+
+        <div class="tm-grid" id="st2-tm-grid"></div>
+      </div>
+
+      <!-- Bloque B: Entrenador de los 6 Verbos STEAM en Pasado -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🎯 Reto Rápido: Domina los 6 Verbos en Pasado del Periódico</h3>
+          <span class="role-tag role-miguel" id="st2-quiz-badge">0 de 6 verbos dominados</span>
+        </div>
+        <p class="helper-note">
+          Con estos 6 verbos en pasado (<strong>worked, created, made, painted, used, learned</strong>) Miguel puede escribir
+          todo su artículo el martes sin enredarse. ¡Cuidado con <strong>make → made</strong> (irregular)!
+        </p>
+        <div class="quiz-grid" id="st2-quiz-grid"></div>
+      </div>
+
+      <!-- Bloque C: Sala de Redacción + Portada de Periódico en Vivo -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">✍️ Sala de Redacción: Construye las 5 Partes de tu Periódico STEAM</h3>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" id="np-fill-demo-btn">⚡ Cargar ejemplo guía</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="np-clear-all-btn">🔄 Limpiar periódico</button>
+          </div>
+        </div>
+        <p class="helper-note">
+          Completa las <strong>5 partes exactas del periódico</strong> (pedidas por la Miss) en la columna izquierda y mira cómo
+          se imprime tu portada en vivo a la derecha. Haz clic en cualquier paso de la barra para saltar directo a esa sección.
+        </p>
+
+        <!-- Barra Interactiva de Progreso de las 5 Partes -->
+        <div class="anatomy-stepper" id="np-anatomy-stepper"></div>
+
+        <div class="pressroom-grid">
+          <!-- Columna Izquierda: Editor Bilingüe de las 5 Secciones -->
+          <div>
+            <!-- Parte 1: NAME -->
+            <div class="news-section-card" id="np-card-name">
+              <div class="news-section-head">
+                <span class="section-code-badge">1. NAME</span>
+                <span class="helper-note" style="margin: 0;">Nombre del periódico escolar</span>
+              </div>
+              <div class="editorial-option-list" id="np-name-presets"></div>
+              <div class="field">
+                <label for="np-name-input">O escribe el nombre que quiera Miguel (Inglés):</label>
+                <input type="text" id="np-name-input" maxlength="60" placeholder="Ej. THE BENEDICTINO STEAM TIMES">
+              </div>
+            </div>
+
+            <!-- Parte 2: TITLE -->
+            <div class="news-section-card" id="np-card-title">
+              <div class="news-section-head">
+                <span class="section-code-badge">2. TITLE</span>
+                <span class="helper-note" style="margin: 0;">Titular grande de la noticia</span>
+              </div>
+              <div class="editorial-option-list" id="np-title-presets"></div>
+              <div class="field">
+                <label for="np-title-input">O personaliza el titular en Inglés A1:</label>
+                <input type="text" id="np-title-input" maxlength="90" placeholder="Ej. Making a Maze and a Dream Catcher!">
+              </div>
+            </div>
+
+            <!-- Parte 3: WHO PARTICIPATED IN THE PROJECT -->
+            <div class="news-section-card" id="np-card-who">
+              <div class="news-section-head">
+                <span class="section-code-badge">3. WHO PARTICIPATED</span>
+                <span class="helper-note" style="margin: 0;">¿Quiénes participaron? (Selecciona 1 o más)</span>
+              </div>
+              <div class="chip-row" id="np-who-chips"></div>
+              <div class="field">
+                <label for="np-who-extra">¿Agregar nombres propios separados por coma? (Opcional)</label>
+                <input type="text" id="np-who-extra" maxlength="80" placeholder="Ej. Miss Laura, Samuel">
+              </div>
+            </div>
+
+            <!-- Parte 4: WHERE DID THE PROJECT TAKE PLACE -->
+            <div class="news-section-card" id="np-card-where">
+              <div class="news-section-head">
+                <span class="section-code-badge">4. WHERE IT TOOK PLACE</span>
+                <span class="helper-note" style="margin: 0;">¿Dónde se realizó el proyecto?</span>
+              </div>
+              <div class="chip-row" id="np-where-chips"></div>
+              <div class="field" style="margin-bottom: 6px;">
+                <label for="np-where-extra-es">¿Otro lugar del colegio? Escribe en español para sugerir chips en inglés (Opcional):</label>
+                <input type="text" id="np-where-extra-es" maxlength="80" placeholder="Ej. patio, salón de arte, biblioteca...">
+              </div>
+              <div class="chip-row" id="np-where-helper-chips" style="margin: 4px 0 8px;"></div>
+              <div class="field">
+                <label for="np-where-extra">Lugar adicional en Inglés A1 (Editable):</label>
+                <input type="text" id="np-where-extra" maxlength="80" placeholder="Ej. in the art room">
+              </div>
+            </div>
+
+            <!-- Parte 5: WHAT DID YOU DO DURING THIS PROJECT (Past Simple) -->
+            <div class="news-section-card" id="np-card-what">
+              <div class="news-section-head">
+                <span class="section-code-badge">5. WHAT DID YOU DO (PAST SIMPLE)</span>
+                <span class="helper-note" style="margin: 0;">Relata tus pasos STEAM con verbos Naranja en pasado</span>
+              </div>
+
+              <!-- Paso 5.1: First -->
+              <div class="story-step-box">
+                <span class="story-connector-tag">🟩 First, we ... (Primero, nosotros...)</span>
+                <div class="adj-group-label" style="margin-top: 2px;">🟧 Elige verbo en Past Simple:</div>
+                <div class="chip-row" id="np-step1-verbs" style="margin: 4px 0 8px;"></div>
+                <div class="adj-group-label">🟦 Actividad STEAM del proyecto:</div>
+                <div class="chip-row" id="np-step1-objs" style="margin: 4px 0 0;"></div>
+              </div>
+
+              <!-- Paso 5.2: Then -->
+              <div class="story-step-box">
+                <span class="story-connector-tag">🟩 Then, we ... (Luego, nosotros...)</span>
+                <div class="adj-group-label" style="margin-top: 2px;">🟧 Elige verbo en Past Simple:</div>
+                <div class="chip-row" id="np-step2-verbs" style="margin: 4px 0 8px;"></div>
+                <div class="adj-group-label">🟪 Segunda actividad STEAM del proyecto:</div>
+                <div class="chip-row" id="np-step2-objs" style="margin: 4px 0 4px;"></div>
+                <div id="np-dup-warning" class="dup-warning-box" style="display: none;"></div>
+              </div>
+
+              <!-- Paso 5.3: We used ... (Materiales reales con Past Simple) -->
+              <div class="story-step-box">
+                <span class="story-connector-tag">🟧 We used ... (Nosotros usamos — Materiales reales)</span>
+                <div class="adj-group-label" style="margin-top: 2px;">🧰 Selecciona los materiales usados (arma automáticamente la frase con <code>used</code>):</div>
+                <div class="chip-row" id="np-step2-mats" style="margin: 4px 0 0;"></div>
+              </div>
+
+              <!-- Paso 5.4: Finally -->
+              <div class="story-step-box" style="margin-bottom: 10px;">
+                <span class="story-connector-tag">🟩 Finally, we learned ... (Finalmente, aprendimos...)</span>
+                <div class="editorial-option-list" id="np-step3-learn" style="margin: 4px 0 0;"></div>
+              </div>
+
+              <!-- Idea extra opcional bilingüe -->
+              <details class="neuro-details">
+                <summary>
+                  <span>✏️ ¿Miguel quiere agregar una oración extra propia? (Español ↔ Inglés)</span>
+                  <span>▼ Abrir</span>
+                </summary>
+                <div class="custom-note-box">
+                  <div class="field" style="margin-bottom: 8px;">
+                    <label for="np-extra-es">Idea extra de Miguel en Español (sugiere palabras A1)</label>
+                    <input type="text" id="np-extra-es" maxlength="100" placeholder="Ej. Pintamos el laberinto con colores">
+                  </div>
+                  <div class="chip-row" id="np-extra-chips"></div>
+                  <div class="field">
+                    <label for="np-extra-en">Oración extra en Inglés (Past Simple) — aparece en el artículo:</label>
+                    <input type="text" id="np-extra-en" maxlength="110" placeholder="Ej. We painted the maze with colors.">
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <!-- Selector de Foto de Portada -->
+            <div class="news-section-card">
+              <div class="news-section-head">
+                <span class="section-code-badge" style="background: var(--lego-purple);">📷 FOTO DE PORTADA</span>
+                <span class="helper-note" style="margin: 0;">Elige cómo se ve la foto de Miguel en el periódico</span>
+              </div>
+              <div class="photo-mode-row" id="np-photo-modes"></div>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Portada de Periódico Broadsheet en Vivo -->
+          <div class="broadsheet-sticky">
+            <div class="broadsheet-toolbar">
+              <button type="button" class="toolbar-toggle-btn is-on" id="np-toggle-highlights-btn">
+                🖍️ Verbos Past Simple: SÍ
+              </button>
+              <button type="button" class="toolbar-toggle-btn" id="np-toggle-blueprint-btn">
+                📋 Guía 5 Partes: NO
+              </button>
+              <button type="button" class="toolbar-toggle-btn" id="np-toggle-memory-btn">
+                🧠 Modo Memoria: NO
+              </button>
+            </div>
+
+            <div class="memory-banner" id="np-memory-banner">
+              <span id="np-memory-counter">🧠 Toca cada cuadro amarillo <code>???</code> para recordar el verbo en pasado y escucharlo.</span>
+              <button type="button" class="btn btn-secondary btn-sm" id="np-memory-reset-btn" style="min-height: 44px; padding: 6px 12px;">🔄 Ocultar de nuevo</button>
+            </div>
+
+            <article class="broadsheet-paper" id="broadsheet-paper" aria-label="Vista previa del Periódico STEAM de Miguel Ángel">
+              <div class="paper-folio">
+                <span>COLEGIO BENEDICTINO</span>
+                <span>EDITION Nº 01 • TERM 3</span>
+                <span>3RD GRADE STEAM</span>
+              </div>
+
+              <div class="paper-masthead-wrap">
+                <span class="blueprint-tag">1. NAME</span>
+                <h2 class="paper-masthead" id="paper-name-out"></h2>
+                <div class="paper-subline">
+                  <span>SPECIAL STEAM RECOVERY EDITION</span>
+                  <span>BY MIGUEL ÁNGEL</span>
+                </div>
+              </div>
+
+              <div class="paper-headline-wrap">
+                <span class="blueprint-tag">2. TITLE</span>
+                <h3 class="paper-headline" id="paper-title-out"></h3>
+                <div class="paper-byline-row">
+                  <div class="paper-byline">Written by Miguel Ángel • 3rd Grade Reporter</div>
+                  <div class="press-ready-stamp" aria-hidden="true">★ READY FOR TUESDAY ★</div>
+                </div>
+              </div>
+
+              <div class="paper-body-grid">
+                <figure class="paper-photo-figure">
+                  <div class="paper-photo-frame" id="paper-photo-frame"></div>
+                  <figcaption class="paper-caption" id="paper-photo-caption"></figcaption>
+                </figure>
+
+                <div>
+                  <div class="paper-fact-box">
+                    <span class="blueprint-tag">3. WHO PARTICIPATED IN THE PROJECT</span>
+                    <div class="paper-fact-label">Who Participated in the Project</div>
+                    <p class="paper-fact-text" id="paper-who-out"></p>
+                  </div>
+
+                  <div class="paper-fact-box" style="margin-bottom: 0;">
+                    <span class="blueprint-tag">4. WHERE DID THE PROJECT TAKE PLACE</span>
+                    <div class="paper-fact-label">Where the Project Took Place</div>
+                    <p class="paper-fact-text" id="paper-where-out"></p>
+                  </div>
+                </div>
+
+                <div class="paper-article-block">
+                  <span class="blueprint-tag">5. WHAT DID YOU DO DURING THIS PROJECT (PAST SIMPLE)</span>
+                  <div class="paper-article-kicker">What We Did During This STEAM Project</div>
+                  <p class="paper-article-copy" id="paper-what-out"></p>
+                </div>
+              </div>
+
+              <div class="blueprint-footer-map">
+                📌 Mapa rápido para dibujar el Martes: <strong>1. NAME</strong> (arriba grande) → <strong>2. TITLE</strong> → <strong>Dibujo + 3. WHO &amp; 4. WHERE</strong> → <strong>5. WHAT</strong> (<code>First</code>, <code>Then</code>, <code>We used</code>, <code>Finally</code> en Past Simple).
+              </div>
+            </article>
+
+            <!-- Panel de Validación y Audio Desbloqueable del Periódico -->
+            <div class="broadsheet-actions" id="np-actions-box">
+              <div class="validation-badge status-idle" id="np-status-badge" style="margin-bottom: 10px;">
+                🧩 Completa las 5 partes del periódico para activar el audio completo.
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button type="button" class="btn btn-audio" id="np-speak-full-btn" disabled>
+                  🔒 Completa las 5 partes para escuchar todo
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="np-speak-what-btn" disabled style="min-height: 44px;">
+                  🔊 Escuchar solo "What we did"
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -407,7 +672,7 @@
         <p>Se construirá y publicará al aprobar la Estación 2.</p>
         <div class="upcoming-preview-list">
           <span>• Las 5 preguntas exactas de la Miss con "Palabra Llave" resaltada.</span>
-          <span>• Botones de opinión A1 + espacio libre en español/inglés con conector `because`.</span>
+          <span>• Botones de opinión A1 + espacio libre en español/inglés con conector <code>because</code>.</span>
           <span>• Audio en inglés para practicar comprensión y pronunciación.</span>
         </div>
         <div>
@@ -422,7 +687,7 @@
         <h2>Estación 4: Entrenador del Martes + Impresión (Próxima Fase 4)</h2>
         <p>Se construirá y publicará al aprobar la Estación 3.</p>
         <div class="upcoming-preview-list">
-          <span>• Reto de escritura `Fill in the Blanks` usando las propias respuestas de Miguel.</span>
+          <span>• Reto de escritura <code>Fill in the Blanks</code> usando las propias respuestas de Miguel.</span>
           <span>• Impresión limpia en 2 hojas (Periódico guía + Tarjetas de bolsillo de las 5 preguntas).</span>
         </div>
         <div>

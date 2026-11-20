@@ -3,15 +3,39 @@
 window.AppStorage = (function () {
   const STORAGE_KEY = "migue_steam_english_a1_v1";
 
+  const DEFAULT_NEWSPAPER = {
+    name: "",
+    title: "",
+    whoSelected: [],
+    whoExtraEs: "",
+    whoExtraEn: "",
+    whereSelected: [],
+    whereExtraEs: "",
+    whereExtraEn: "",
+    step1Verb: "",
+    step1Obj: "",
+    step2Verb: "",
+    step2Obj: "",
+    step2Materials: [],
+    step3Learning: "",
+    extraStepEs: "",
+    extraStepEn: "",
+    photoMode: "constructor",
+    highlightPastVerbs: true,
+    showExamBlueprint: false,
+    memoryMode: false
+  };
+
   const DEFAULT_STATE = {
-    version: 1,
+    version: 2,
     speechRate: 0.85,
     customItems: [],
     completedStation0Challenges: [],
     station1QuizSolved: [],
+    station2VerbQuizSolved: [],
     /* Espacios reservados para Estaciones 1 a 4 */
     comparatives: [],
-    newspaper: {},
+    newspaper: DEFAULT_NEWSPAPER,
     metacognition: {},
     practiceStats: { completed: 0 }
   };
@@ -25,7 +49,9 @@ window.AppStorage = (function () {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (!raw) return clone(DEFAULT_STATE);
       const parsed = JSON.parse(raw);
-      return Object.assign(clone(DEFAULT_STATE), parsed);
+      const merged = Object.assign(clone(DEFAULT_STATE), parsed);
+      merged.newspaper = Object.assign(clone(DEFAULT_NEWSPAPER), parsed.newspaper || {});
+      return merged;
     } catch (err) {
       return clone(DEFAULT_STATE);
     }

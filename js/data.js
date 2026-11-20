@@ -281,6 +281,205 @@ window.APP_DATA = {
     { id: "adj-better", en: "better", es: "mejor", group: "irregular", base: "good" }
   ],
 
+  /* ==================== ESTACIÓN 2: STEAM NEWSPAPER & PAST SIMPLE ==================== */
+  station2Data: {
+    timeMachineExamples: [
+      {
+        id: "tm-fortnite",
+        icon: "🎮",
+        interest: "Fortnite en Play",
+        subject: "I",
+        presentVerb: "play",
+        pastVerb: "played",
+        rest: "Fortnite on Play.",
+        esPresent: "Hoy juego Fortnite en Play.",
+        esPast: "Ayer jugué Fortnite en Play.",
+        ruleTag: "+ed"
+      },
+      {
+        id: "tm-piano",
+        icon: "🎹",
+        interest: "Piano",
+        subject: "I",
+        presentVerb: "practice",
+        pastVerb: "practiced",
+        rest: "the piano.",
+        esPresent: "Hoy practico el piano.",
+        esPast: "Ayer practiqué el piano.",
+        ruleTag: "+d"
+      },
+      {
+        id: "tm-mrbeast",
+        icon: "▶️",
+        interest: "YouTube MrBeast",
+        subject: "I",
+        presentVerb: "watch",
+        pastVerb: "watched",
+        rest: "MrBeast on YouTube.",
+        esPresent: "Hoy veo a MrBeast en YouTube.",
+        esPast: "Ayer vi a MrBeast en YouTube.",
+        ruleTag: "+ed"
+      },
+      {
+        id: "tm-melody",
+        icon: "🎵",
+        interest: "Canción en Piano",
+        subject: "I",
+        presentVerb: "make",
+        pastVerb: "made",
+        rest: "a cool piano song.",
+        esPresent: "Hoy hago una canción genial en piano.",
+        esPast: "Ayer hice una canción genial en piano.",
+        ruleTag: "Irregular!"
+      }
+    ],
+
+    pastVerbQuiz: [
+      {
+        id: "vq-work",
+        base: "work",
+        es: "trabajar",
+        answer: "worked",
+        kind: "regular",
+        options: ["worked", "working", "workd"],
+        tipOk: "¡Perfecto! 'work' es regular: solo agrega -ed → worked.",
+        tipRetry: "Pista: 'work' es verbo regular. Agrega exactamente '-ed' al final."
+      },
+      {
+        id: "vq-create",
+        base: "create",
+        es: "crear",
+        answer: "created",
+        kind: "regular",
+        options: ["createed", "created", "creating"],
+        tipOk: "¡Excelente! Como 'create' ya termina en -e, solo agrega -d → created.",
+        tipRetry: "Pista: 'create' ya termina en 'e', no repitas la 'e'. Solo pega una 'd'."
+      },
+      {
+        id: "vq-make",
+        base: "make",
+        es: "hacer / construir",
+        answer: "made",
+        kind: "irregular",
+        options: ["maked", "made", "making"],
+        tipOk: "¡Crack! 'make' es irregular estrella: en pasado siempre es 'made'.",
+        tipRetry: "Pista: ¡Cuidado! 'make' es irregular (nunca se dice 'maked'). Cambia a m-a-d-e."
+      },
+      {
+        id: "vq-paint",
+        base: "paint",
+        es: "pintar",
+        answer: "painted",
+        kind: "regular",
+        options: ["painted", "panted", "paintd"],
+        tipOk: "¡Súper! 'paint' + -ed → painted (pinté / pintamos).",
+        tipRetry: "Pista: mantén la palabra 'paint' completa y agrega '-ed'."
+      },
+      {
+        id: "vq-use",
+        base: "use",
+        es: "usar",
+        answer: "used",
+        kind: "regular",
+        options: ["useed", "usid", "used"],
+        tipOk: "¡Muy bien! 'use' ya termina en -e, solo agrega -d → used.",
+        tipRetry: "Pista: 'use' termina en 'e', solo pon una 'd' al final."
+      },
+      {
+        id: "vq-learn",
+        base: "learn",
+        es: "aprender",
+        answer: "learned",
+        kind: "regular",
+        options: ["learned", "learnd", "learning"],
+        tipOk: "¡Lo lograste! 'learn' + -ed → learned (aprendí / aprendimos).",
+        tipRetry: "Pista: 'learn' es regular en inglés americano: agrega '-ed'."
+      }
+    ],
+
+    namePresets: [
+      { en: "THE BENEDICTINO STEAM TIMES", es: "El Diario STEAM del Benedictino" },
+      { en: "MIGUEL'S STEAM NEWS", es: "Noticias STEAM de Miguel" },
+      { en: "3RD GRADE DAILY PRESS", es: "Prensa Diaria de 3° Primaria" }
+    ],
+
+    titlePresets: [
+      { en: "Our Amazing STEAM Project!", es: "¡Nuestro Increíble Proyecto STEAM!" },
+      { en: "Making a Maze and a Dream Catcher!", es: "¡Haciendo un Laberinto y un Atrapasueños!" },
+      { en: "3rd Grade Engineers Built & Created!", es: "¡Ingenieros de 3° Construyeron y Crearon!" }
+    ],
+
+    whoChips: [
+      { id: "who-classmates", en: "my classmates", es: "mis compañeros" },
+      { id: "who-teachers", en: "my teachers", es: "mis profesores" },
+      { id: "who-english-miss", en: "my English teacher", es: "mi Miss de Inglés" },
+      { id: "who-friends", en: "my friends", es: "mis amigos" }
+    ],
+
+    whereChips: [
+      { id: "wh-classroom", en: "in our 3rd grade classroom", es: "en nuestro salón de tercero", scope: "room" },
+      { id: "wh-steam-room", en: "in the STEAM classroom", es: "en el salón de STEAM", scope: "room" },
+      { id: "wh-school", en: "at Colegio Benedictino de Santa María", es: "en el Colegio Benedictino de Santa María", scope: "school" },
+      { id: "wh-at-school", en: "at school", es: "en el colegio (corto)", scope: "school" }
+    ],
+
+    storyVerbs: [
+      { en: "created", es: "creamos", kind: "regular", creation: true },
+      { en: "made", es: "hicimos", kind: "irregular", creation: true },
+      { en: "built", es: "construimos", kind: "irregular", creation: true },
+      { en: "worked on", es: "trabajamos en", kind: "regular", creation: false },
+      { en: "designed", es: "diseñamos", kind: "regular", creation: false },
+      { en: "painted", es: "pintamos", kind: "regular", creation: false }
+    ],
+
+    materialChips: [
+      { en: "cardboard", es: "cartón" },
+      { en: "paper", es: "papel" },
+      { en: "wool and thread", es: "lana e hilo" },
+      { en: "colors and markers", es: "colores y marcadores" },
+      { en: "scissors and glue", es: "tijeras y pegante" },
+      { en: "recycled materials", es: "materiales reciclados" }
+    ],
+
+    learningChips: [
+      { en: "how to build a maze and a dream catcher", es: "cómo construir un laberinto y un atrapasueños" },
+      { en: "about teamwork and creativity", es: "sobre trabajo en equipo y creatividad" },
+      { en: "new English words and STEAM skills", es: "nuevas palabras en inglés y habilidades STEAM" },
+      { en: "to be patient and solve problems", es: "a tener paciencia y resolver problemas" }
+    ],
+
+    photoModes: [
+      {
+        id: "constructor",
+        label: "👷 Foto Constructor STEAM",
+        src: "assets/images/miguel-constructor.jpg",
+        captionEn: "Reporter Miguel Ángel ready with his tools for the 3rd Grade STEAM Project!",
+        objectPos: "center 34%"
+      },
+      {
+        id: "retrato",
+        label: "📸 Foto Reportero Oficial",
+        src: "assets/images/miguel-retrato.jpg",
+        captionEn: "Miguel Ángel, 3rd Grade student reporter at Colegio Benedictino de Santa María.",
+        objectPos: "center 20%"
+      },
+      {
+        id: "familia",
+        label: "👨‍👩‍👦 Foto Familiar de Miguel",
+        src: "assets/images/miguel-familia.jpg",
+        captionEn: "Miguel Ángel and his lovely family supporting him in his school activities!",
+        objectPos: "center 14%"
+      },
+      {
+        id: "sketch",
+        label: "✏️ Marco de Dibujo (Martes)",
+        src: "",
+        captionEn: "Tip for Tuesday: Draw your Maze and Dream Catcher inside this box on your paper!",
+        objectPos: "center"
+      }
+    ]
+  },
+
   /* Glosario local Español -> Inglés A1 (orientado a STEAM, manualidades, colegio y gustos de Miguel) */
   esToEnGlossary: [
     { es: "atrapasuenos", displayEs: "atrapasueños", en: "the dream catcher" },
@@ -302,7 +501,13 @@ window.APP_DATA = {
     { es: "ver mr beast", displayEs: "ver MrBeast", en: "watching MrBeast on YouTube" },
     { es: "compañeros", displayEs: "compañeros", en: "my classmates" },
     { es: "profesores", displayEs: "profesores", en: "my teachers" },
-    { es: "salon", displayEs: "salón", en: "our classroom" },
+    { es: "salon de arte", displayEs: "salón de arte", en: "in the art room" },
+    { es: "laboratorio", displayEs: "laboratorio", en: "in the science lab" },
+    { es: "biblioteca", displayEs: "biblioteca", en: "in the library" },
+    { es: "patio", displayEs: "patio", en: "in the school yard" },
+    { es: "cancha", displayEs: "cancha", en: "on the sports field" },
+    { es: "auditorio", displayEs: "auditorio", en: "in the auditorium" },
+    { es: "salon", displayEs: "salón", en: "in our classroom" },
     { es: "colegio", displayEs: "colegio", en: "school" },
     { es: "porque", displayEs: "porque", en: "because" },
     { es: "fue", displayEs: "fue", en: "it was" },

@@ -46,6 +46,9 @@
         panels.forEach((p) => {
           p.classList.toggle("is-active", p.id === targetId);
         });
+        if (typeof tab.scrollIntoView === "function") {
+          tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        }
       });
     });
 
@@ -236,6 +239,7 @@
         window.AppStorage.save(state);
         renderBank();
         renderStation1Builder();
+        renderStation2Newspaper();
         showToast("Elemento quitado del banco.");
       });
     });
@@ -315,6 +319,7 @@
         window.AppStorage.save(state);
         renderBank();
         renderStation1Builder();
+        renderStation2Newspaper();
         form.reset();
         if (inputEn) inputEn.dataset.userEdited = "false";
         showToast(`Agregado al banco: ${enVal}`);
@@ -1071,6 +1076,1028 @@
     }
   }
 
+  /* ==================== ESTACIÓN 2: STEAM NEWSPAPER & PAST SIMPLE (R2 AWWWARDS) ==================== */
+  let tmIsPast = false;
+  let revealedMemoryKeys = new Set();
+
+  function formatNewspaperObj(item) {
+    if (!item) return "";
+    if (item.id === "steam-maze") return "the maze";
+    if (item.id === "steam-dream-catcher") return "the dream catcher";
+    return item.en.startsWith("The ") ? "the " + item.en.slice(4) : item.en;
+  }
+
+  function joinEnglishList(arr) {
+    const clean = (arr || []).filter(Boolean);
+    if (clean.length === 0) return "";
+    if (clean.length === 1) return clean[0];
+    if (clean.length === 2) return `${clean[0]} and ${clean[1]}`;
+    return `${clean.slice(0, -1).join(", ")}, and ${clean[clean.length - 1]}`;
+  }
+
+  function renderPastToken(verbText, memKey, isMemoryMode) {
+    if (!isMemoryMode) {
+      return `<span class="np-past">${escapeHtml(verbText)}</span>`;
+    }
+    const isRevealed = revealedMemoryKeys.has(memKey);
+    if (isRevealed) {
+      return `<button type="button" class="np-memory-btn is-revealed" data-mem-key="${escapeHtml(memKey)}" data-mem-word="${escapeHtml(verbText)}" title="Escuchar verbo en pasado">✓ ${escapeHtml(verbText)}</button>`;
+    }
+    return `<button type="button" class="np-memory-btn" data-mem-key="${escapeHtml(memKey)}" data-mem-word="${escapeHtml(verbText)}" title="Toca para recordar este verbo en Past Simple">???</button>`;
+  }
+
+  function highlightExtraPastVerbs(sentence, isMemoryMode, keyPrefix) {
+    const escaped = escapeHtml(sentence);
+    const knownPastRegex = /\b(participated|took place|created|made|built|worked on|worked|designed|painted|used|learned|was|were|played|watched|practiced|cut|glued|drew|shared|helped)\b/gi;
+    let idx = 0;
+    return escaped.replace(knownPastRegex, (match) => {
+      idx += 1;
+      return renderPastToken(match, `${keyPrefix}-${idx}`, isMemoryMode);
+    });
+  }
+
+  function renderStation2TimeMachine() {
+    const grid = document.getElementById("st2-tm-grid");
+    const headerBar = document.getElementById("tm-header-bar");
+    const toggleBtn = document.getElementById("tm-toggle-btn");
+    const modeTitle = document.getElementById("tm-mode-title");
+    const modeSub = document.getElementById("tm-mode-sub");
+    if (!grid) return;
+
+    const list = (window.APP_DATA.station2Data && window.APP_DATA.station2Data.timeMachineExamples) || [];
+
+    if (headerBar) headerBar.classList.toggle("is-past-banner", tmIsPast);
+    if (toggleBtn) {
+      toggleBtn.classList.toggle("is-past", tmIsPast);
+      toggleBtn.textContent = tmIsPast
+        ? "⏪ Volver a Hoy (Presente)"
+        : "⏳ Viajar al Pasado (Past Simple)";
+    }
+    if (modeTitle) {
+      modeTitle.textContent = tmIsPast
+        ? "🚀 Modo Activo: AYER — PAST SIMPLE (Pasado)"
+        : "⏰ Modo Actual: HOY — PRESENTE";
+    }
+    if (modeSub) {
+      modeSub.textContent = tmIsPast
+        ? "¡Mira los verbos en Naranja! Con -ed (regulares) o cambiando forma (make → made) cuentas cosas que ya pasaron."
+        : "Oprime el botón para viajar a AYER y ver cómo los verbos cambian a Naranja (Past Simple).";
+    }
+
+    grid.innerHTML = list
+      .map((ex, idx) => {
+        const prefix = tmIsPast ? `<span class="np-conn">Yesterday,</span> ` : "";
+        const verbHtml = tmIsPast
+          ? `<span class="tm-verb-pill tm-verb-past">${escapeHtml(ex.pastVerb)}</span>`
+          : `<span class="tm-verb-pill tm-verb-present">${escapeHtml(ex.presentVerb)}</span>`;
+        const morphHtml = tmIsPast
+          ? `<div class="tm-morph-trail"><s>${escapeHtml(ex.presentVerb)}</s> <span>→</span> <strong>${escapeHtml(ex.pastVerb)}</strong></div>`
+          : "";
+
+        return `
+          <article class="tm-card ${tmIsPast ? "is-past-mode" : ""}">
+            <div>
+              <div class="tm-top-row">
+                <span class="tm-interest">${ex.icon} ${escapeHtml(ex.interest)}</span>
+                <span class="tm-rule-pill">${escapeHtml(ex.ruleTag)}</span>
+              </div>
+              <p class="tm-sentence">
+                ${prefix}${escapeHtml(ex.subject)} ${verbHtml} ${escapeHtml(ex.rest)}
+              </p>
+              ${morphHtml}
+              <p class="warmup-es" style="margin-top: 6px;">${escapeHtml(tmIsPast ? ex.esPast : ex.esPresent)}</p>
+            </div>
+            <div>
+              <button type="button" class="btn btn-audio btn-sm" style="min-height: 44px;" data-tm-speak="${idx}">
+                🔊 ${tmIsPast ? "Escuchar en Pasado" : "Escuchar en Presente"}
+              </button>
+            </div>
+          </article>`;
+      })
+      .join("");
+
+    grid.querySelectorAll("[data-tm-speak]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ex = list[Number(btn.getAttribute("data-tm-speak"))];
+        if (!ex) return;
+        const phrase = tmIsPast
+          ? `Yesterday, ${ex.subject} ${ex.pastVerb} ${ex.rest}`
+          : `${ex.subject} ${ex.presentVerb} ${ex.rest}`;
+        window.AppSpeech.speak(phrase, showToast);
+      });
+    });
+  }
+
+  function renderStation2Quiz() {
+    const grid = document.getElementById("st2-quiz-grid");
+    const badge = document.getElementById("st2-quiz-badge");
+    if (!grid) return;
+
+    const items = (window.APP_DATA.station2Data && window.APP_DATA.station2Data.pastVerbQuiz) || [];
+    const solved = state.station2VerbQuizSolved || [];
+
+    if (badge) {
+      badge.textContent =
+        solved.length === items.length
+          ? `🏆 ¡${solved.length} de ${items.length} verbos dominados!`
+          : `${solved.length} de ${items.length} verbos dominados`;
+    }
+
+    grid.innerHTML = items
+      .map((item) => {
+        const isSolved = solved.includes(item.id);
+        const optsHtml = item.options
+          .map((opt) => {
+            const cls = isSolved && opt === item.answer ? "is-right" : "";
+            return `
+              <button type="button" class="quiz-opt-btn ${cls}" data-vq-id="${item.id}" data-vq-opt="${escapeHtml(opt)}" ${isSolved ? "disabled" : ""}>
+                ${isSolved && opt === item.answer ? "✅ " : ""}${escapeHtml(opt)}
+              </button>`;
+          })
+          .join("");
+
+        return `
+          <article class="quiz-card ${isSolved ? "is-solved" : ""}">
+            <div class="quiz-word">
+              <strong>${escapeHtml(item.base)} → ?</strong>
+              <span>(${escapeHtml(item.es)})</span>
+            </div>
+            <div class="quiz-options">${optsHtml}</div>
+            <div class="quiz-feedback ${isSolved ? "ok" : ""}" id="vq-fb-${item.id}">
+              ${isSolved ? escapeHtml(item.tipOk) : "Elige el pasado correcto (Past Simple):"}
+            </div>
+            ${
+              isSolved
+                ? `<button type="button" class="btn btn-audio btn-sm" style="min-height: 44px;" data-vq-speak="${escapeHtml(item.answer)}">🔊 Escuchar "${escapeHtml(item.answer)}"</button>`
+                : ""
+            }
+          </article>`;
+      })
+      .join("");
+
+    grid.querySelectorAll("[data-vq-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-vq-id");
+        const chosen = btn.getAttribute("data-vq-opt");
+        const item = items.find((i) => i.id === id);
+        if (!item) return;
+
+        if (chosen === item.answer) {
+          if (!state.station2VerbQuizSolved.includes(id)) {
+            state.station2VerbQuizSolved.push(id);
+            window.AppStorage.save(state);
+          }
+          renderStation2Quiz();
+          window.AppSpeech.speak(`We ${item.answer}`, showToast);
+        } else {
+          btn.classList.add("is-wrong");
+          const fb = document.getElementById(`vq-fb-${id}`);
+          if (fb) {
+            fb.className = "quiz-feedback retry";
+            fb.textContent = item.tipRetry;
+          }
+        }
+      });
+    });
+
+    grid.querySelectorAll("[data-vq-speak]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        window.AppSpeech.speak(btn.getAttribute("data-vq-speak"), showToast);
+      });
+    });
+  }
+
+  function buildNewspaperTexts(np) {
+    const s2 = window.APP_DATA.station2Data;
+    const isMemory = Boolean(np.memoryMode);
+
+    /* 3. WHO — divide nombres propios por coma para gramática limpia */
+    const whoParts = (np.whoSelected || [])
+      .map((id) => {
+        const found = s2.whoChips.find((c) => c.id === id);
+        return found ? found.en : null;
+      })
+      .filter(Boolean);
+    if (np.whoExtraEn && np.whoExtraEn.trim()) {
+      np.whoExtraEn
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .forEach((person) => whoParts.push(person));
+    }
+
+    const whoSentencePlain =
+      whoParts.length > 0
+        ? `In this STEAM project, I participated with ${joinEnglishList(whoParts)}.`
+        : "";
+    const whoSentenceHtml =
+      whoParts.length > 0
+        ? `In this STEAM project, I ${renderPastToken("participated", "mem-who", isMemory)} with ${escapeHtml(joinEnglishList(whoParts))}.`
+        : "";
+
+    /* 4. WHERE — jerarquía natural en inglés (salón/espacio primero + colegio después, sin comas forzadas) */
+    const selectedWhereObjs = (np.whereSelected || [])
+      .map((id) => s2.whereChips.find((c) => c.id === id))
+      .filter(Boolean);
+
+    const roomParts = selectedWhereObjs.filter((c) => c.scope === "room").map((c) => c.en);
+    if (np.whereExtraEn && np.whereExtraEn.trim()) {
+      roomParts.push(np.whereExtraEn.trim());
+    }
+    const schoolParts = selectedWhereObjs.filter((c) => c.scope === "school").map((c) => c.en);
+
+    let wherePhrase = "";
+    if (roomParts.length > 0 && schoolParts.length > 0) {
+      wherePhrase = `${joinEnglishList(roomParts)} ${schoolParts[0]}`;
+    } else if (roomParts.length > 0) {
+      wherePhrase = joinEnglishList(roomParts);
+    } else if (schoolParts.length > 0) {
+      wherePhrase = schoolParts[0];
+    }
+
+    const whereSentencePlain = wherePhrase ? `The project took place ${wherePhrase}.` : "";
+    const whereSentenceHtml = wherePhrase
+      ? `The project ${renderPastToken("took place", "mem-where", isMemory)} ${escapeHtml(wherePhrase)}.`
+      : "";
+
+    /* Guard de duplicados en Paso 1 y Paso 2 */
+    const v1Meta = s2.storyVerbs.find((v) => v.en === np.step1Verb);
+    const v2Meta = s2.storyVerbs.find((v) => v.en === np.step2Verb);
+    const isDuplicateStep = Boolean(
+      np.step1Verb &&
+        np.step1Obj &&
+        np.step2Verb &&
+        np.step2Obj &&
+        np.step1Obj === np.step2Obj &&
+        (np.step1Verb === np.step2Verb || (v1Meta && v1Meta.creation && v2Meta && v2Meta.creation))
+    );
+
+    /* 5. WHAT DID YOU DO (First / Then / We used / Finally / Extra) */
+    const storyPlainParts = [];
+    const storyHtmlParts = [];
+
+    if (np.step1Verb && np.step1Obj) {
+      storyPlainParts.push(`First, we ${np.step1Verb} ${np.step1Obj}.`);
+      storyHtmlParts.push(
+        `<span class="np-conn">First,</span> we ${renderPastToken(np.step1Verb, "mem-s1", isMemory)} ${escapeHtml(np.step1Obj)}.`
+      );
+    }
+
+    if (np.step2Verb && np.step2Obj && !isDuplicateStep) {
+      storyPlainParts.push(`Then, we ${np.step2Verb} ${np.step2Obj}.`);
+      storyHtmlParts.push(
+        `<span class="np-conn">Then,</span> we ${renderPastToken(np.step2Verb, "mem-s2", isMemory)} ${escapeHtml(np.step2Obj)}.`
+      );
+    }
+
+    const mats = np.step2Materials || [];
+    if (mats.length > 0) {
+      const matList = joinEnglishList(mats);
+      storyPlainParts.push(`We used ${matList}.`);
+      storyHtmlParts.push(
+        `We ${renderPastToken("used", "mem-mats", isMemory)} ${escapeHtml(matList)}.`
+      );
+    }
+
+    if (np.step3Learning) {
+      storyPlainParts.push(`Finally, we learned ${np.step3Learning}.`);
+      storyHtmlParts.push(
+        `<span class="np-conn">Finally,</span> we ${renderPastToken("learned", "mem-s3", isMemory)} ${escapeHtml(np.step3Learning)}.`
+      );
+    }
+
+    if (np.extraStepEn && np.extraStepEn.trim()) {
+      const cleanExtra = np.extraStepEn.trim().endsWith(".")
+        ? np.extraStepEn.trim()
+        : np.extraStepEn.trim() + ".";
+      storyPlainParts.push(cleanExtra);
+      storyHtmlParts.push(highlightExtraPastVerbs(cleanExtra, isMemory, "mem-ext"));
+    }
+
+    const hasSecondAction = Boolean((np.step2Verb && np.step2Obj && !isDuplicateStep) || mats.length > 0 || np.step3Learning);
+    const whatReady = Boolean(np.step1Verb && np.step1Obj && hasSecondAction && !isDuplicateStep);
+
+    const checks = {
+      name: Boolean(np.name && np.name.trim()),
+      title: Boolean(np.title && np.title.trim()),
+      who: whoParts.length > 0,
+      where: Boolean(wherePhrase),
+      what: whatReady
+    };
+
+    const completedCount = Object.values(checks).filter(Boolean).length;
+    const whatPlain = storyPlainParts.join(" ");
+    const fullPlain =
+      completedCount === 5
+        ? `${np.name.trim()}. ${np.title.trim()}. Written by Miguel Angel. ${whoSentencePlain} ${whereSentencePlain} ${whatPlain}`
+        : "";
+
+    return {
+      checks,
+      completedCount,
+      isDuplicateStep,
+      whoSentenceHtml,
+      whereSentenceHtml,
+      storyHtmlParts,
+      whatPlain,
+      fullPlain
+    };
+  }
+
+  function renderWhereBilingualChips() {
+    const inputEs = document.getElementById("np-where-extra-es");
+    const inputEn = document.getElementById("np-where-extra");
+    const chipsWrap = document.getElementById("np-where-helper-chips");
+    if (!inputEs || !inputEn || !chipsWrap) return;
+
+    const res = window.BilingualHelper.analyze(inputEs.value);
+    if (res.matches.length === 0) {
+      chipsWrap.innerHTML = "";
+      return;
+    }
+
+    chipsWrap.innerHTML = res.matches
+      .map(
+        (m) => `
+        <button type="button" class="word-chip" data-wh-ins="${escapeHtml(m.en)}">
+          <span>+ ${escapeHtml(m.en)}</span>
+          <span class="es-mini">(${escapeHtml(m.displayEs)})</span>
+        </button>`
+      )
+      .join("");
+
+    chipsWrap.querySelectorAll("[data-wh-ins]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        inputEn.value = btn.getAttribute("data-wh-ins");
+        state.newspaper.whereExtraEn = inputEn.value;
+        window.AppStorage.save(state);
+        renderStation2Newspaper();
+      });
+    });
+  }
+
+  function renderExtraStepBilingualChips() {
+    const extraEs = document.getElementById("np-extra-es");
+    const extraEn = document.getElementById("np-extra-en");
+    const extraChips = document.getElementById("np-extra-chips");
+    if (!extraEs || !extraEn || !extraChips) return;
+
+    const res = window.BilingualHelper.analyze(extraEs.value);
+    if (res.matches.length === 0) {
+      extraChips.innerHTML = "";
+      return;
+    }
+
+    extraChips.innerHTML = res.matches
+      .map(
+        (m) => `
+        <button type="button" class="word-chip" data-np-ins="${escapeHtml(m.en)}">
+          <span>+ ${escapeHtml(m.en)}</span>
+          <span class="es-mini">(${escapeHtml(m.displayEs)})</span>
+        </button>`
+      )
+      .join("");
+
+    extraChips.querySelectorAll("[data-np-ins]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const phrase = btn.getAttribute("data-np-ins");
+        const cur = extraEn.value.trim();
+        extraEn.value = cur ? `${cur} ${phrase}` : phrase;
+        state.newspaper.extraStepEn = extraEn.value;
+        window.AppStorage.save(state);
+        renderStation2Newspaper();
+      });
+    });
+  }
+
+  function renderStation2Newspaper() {
+    const s2 = window.APP_DATA.station2Data;
+    const np = state.newspaper;
+    const stepper = document.getElementById("np-anatomy-stepper");
+    if (!s2 || !np || !stepper) return;
+
+    /* Solo actividades STEAM en el periódico (sin mezclar fiestas culturales) */
+    const steamItems = getAllBankItems().filter((i) => i.category === "steam");
+    const validSteamObjs = steamItems.map((it) => formatNewspaperObj(it));
+    if (np.step1Obj && !validSteamObjs.includes(np.step1Obj)) np.step1Obj = "";
+    if (np.step2Obj && !validSteamObjs.includes(np.step2Obj)) np.step2Obj = "";
+    const built = buildNewspaperTexts(np);
+
+    /* 1. Barra interactiva de las 5 partes */
+    const stepLabels = [
+      { key: "name", num: "1", label: "NAME" },
+      { key: "title", num: "2", label: "TITLE" },
+      { key: "who", num: "3", label: "WHO" },
+      { key: "where", num: "4", label: "WHERE" },
+      { key: "what", num: "5", label: "WHAT (Past)" }
+    ];
+    stepper.innerHTML = stepLabels
+      .map(
+        (st) => `
+        <button type="button" class="anatomy-pill ${built.checks[st.key] ? "is-done" : ""}" data-jump-card="np-card-${st.key}">
+          <span class="step-num">${built.checks[st.key] ? "✅ Listo" : "Paso " + st.num}</span>
+          <span>${st.label}</span>
+        </button>`
+      )
+      .join("");
+
+    stepper.querySelectorAll("[data-jump-card]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = document.getElementById(btn.getAttribute("data-jump-card"));
+        if (!target) return;
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        target.classList.add("is-pulse");
+        setTimeout(() => target.classList.remove("is-pulse"), 900);
+      });
+    });
+
+    ["name", "title", "who", "where", "what"].forEach((k) => {
+      const card = document.getElementById(`np-card-${k}`);
+      if (card) card.classList.toggle("is-filled", built.checks[k]);
+    });
+
+    /* 2. Presets apilados de NAME y TITLE */
+    const namePresetsEl = document.getElementById("np-name-presets");
+    if (namePresetsEl) {
+      namePresetsEl.innerHTML = s2.namePresets
+        .map(
+          (p) => `
+          <button type="button" class="editorial-opt-btn editorial-opt-blue ${np.name === p.en ? "is-selected" : ""}" data-np-name="${escapeHtml(p.en)}">
+            <span class="opt-en">${np.name === p.en ? "✓ " : ""}${escapeHtml(p.en)}</span>
+            <span class="opt-es">${escapeHtml(p.es)}</span>
+          </button>`
+        )
+        .join("");
+
+      namePresetsEl.querySelectorAll("[data-np-name]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          np.name = btn.getAttribute("data-np-name");
+          const inp = document.getElementById("np-name-input");
+          if (inp) inp.value = np.name;
+          window.AppStorage.save(state);
+          renderStation2Newspaper();
+        });
+      });
+    }
+
+    const titlePresetsEl = document.getElementById("np-title-presets");
+    if (titlePresetsEl) {
+      titlePresetsEl.innerHTML = s2.titlePresets
+        .map(
+          (p) => `
+          <button type="button" class="editorial-opt-btn editorial-opt-blue ${np.title === p.en ? "is-selected" : ""}" data-np-title="${escapeHtml(p.en)}">
+            <span class="opt-en">${np.title === p.en ? "✓ " : ""}${escapeHtml(p.en)}</span>
+            <span class="opt-es">${escapeHtml(p.es)}</span>
+          </button>`
+        )
+        .join("");
+
+      titlePresetsEl.querySelectorAll("[data-np-title]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          np.title = btn.getAttribute("data-np-title");
+          const inp = document.getElementById("np-title-input");
+          if (inp) inp.value = np.title;
+          window.AppStorage.save(state);
+          renderStation2Newspaper();
+        });
+      });
+    }
+
+    /* 3. WHO chips */
+    const whoEl = document.getElementById("np-who-chips");
+    if (whoEl) {
+      whoEl.innerHTML = s2.whoChips
+        .map((c) => {
+          const active = (np.whoSelected || []).includes(c.id);
+          return `
+            <button type="button" class="lego-piece lego-piece-purple ${active ? "is-selected" : ""}" data-np-who="${c.id}">
+              <span>${active ? "✓ " : "+ "}${escapeHtml(c.en)}</span>
+              <span class="es-mini">(${escapeHtml(c.es)})</span>
+            </button>`;
+        })
+        .join("");
+
+      whoEl.querySelectorAll("[data-np-who]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-np-who");
+          const list = np.whoSelected || [];
+          np.whoSelected = list.includes(id) ? list.filter((x) => x !== id) : list.concat([id]);
+          window.AppStorage.save(state);
+          renderStation2Newspaper();
+        });
+      });
+    }
+
+    /* 4. WHERE chips (con exclusión mutua limpia entre nombre de colegio y "at school") */
+    const whereEl = document.getElementById("np-where-chips");
+    if (whereEl) {
+      whereEl.innerHTML = s2.whereChips
+        .map((c) => {
+          const active = (np.whereSelected || []).includes(c.id);
+          return `
+            <button type="button" class="lego-piece lego-piece-green ${active ? "is-selected" : ""}" data-np-where="${c.id}">
+              <span>${active ? "✓ " : "+ "}${escapeHtml(c.en)}</span>
+              <span class="es-mini">(${escapeHtml(c.es)})</span>
+            </button>`;
+        })
+        .join("");
+
+      whereEl.querySelectorAll("[data-np-where]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-np-where");
+          let list = (np.whereSelected || []).slice();
+          if (list.includes(id)) {
+            list = list.filter((x) => x !== id);
+          } else {
+            if (id === "wh-school") list = list.filter((x) => x !== "wh-at-school");
+            if (id === "wh-at-school") list = list.filter((x) => x !== "wh-school");
+            list.push(id);
+          }
+          np.whereSelected = list;
+          window.AppStorage.save(state);
+          renderStation2Newspaper();
+        });
+      });
+    }
+
+    /* 5. WHAT DID YOU DO chips (First / Then / We used / Finally) */
+    function renderVerbPicker(elId, fieldKey) {
+      const wrap = document.getElementById(elId);
+      if (!wrap) return;
+      wrap.innerHTML = s2.storyVerbs
+        .map(
+          (v) => `
+          <button type="button" class="lego-piece lego-piece-orange ${np[fieldKey] === v.en ? "is-selected" : ""}" data-v-pick="${escapeHtml(v.en)}">
+            <span>${escapeHtml(v.en)}</span>
+            <span class="es-mini">(${escapeHtml(v.es)})</span>
+          </button>`
+        )
+        .join("");
+
+      wrap.querySelectorAll("[data-v-pick]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.getAttribute("data-v-pick");
+          np[fieldKey] = np[fieldKey] === val ? "" : val;
+          window.AppStorage.save(state);
+          renderStation2Newspaper();
+        });
+      });
+    }
+
+    function renderObjPicker(elId, fieldKey, colorCls) {
+      const wrap = document.getElementById(elId);
+      if (!wrap) return;
+      wrap.innerHTML = steamItems
+        .map((it) => {
+          const formatted = formatNewspaperObj(it);
+          const sel = np[fieldKey] === formatted;
+          return `
+            <button type="button" class="lego-piece ${colorCls} ${sel ? "is-selected" : ""}" data-o-pick="${escapeHtml(formatted)}">
+              <span>${escapeHtml(formatted)}</span>
+              <span class="es-mini">(${escapeHtml(it.es)})</span>
+            </button>`;
+        })
+        .join("");
+
+      wrap.querySelectorAll("[data-o-pick]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.getAttribute("data-o-pick");
+          np[fieldKey] = np[fieldKey] === val ? "" : val;
+          window.AppStorage.save(state);
+          renderStation2Newspaper();
+        });
+      });
+    }
+
+    renderVerbPicker("np-step1-verbs", "step1Verb");
+    renderObjPicker("np-step1-objs", "step1Obj", "lego-piece-blue");
+    renderVerbPicker("np-step2-verbs", "step2Verb");
+    renderObjPicker("np-step2-objs", "step2Obj", "lego-piece-purple");
+
+    const dupWarnEl = document.getElementById("np-dup-warning");
+    if (dupWarnEl) {
+      if (built.isDuplicateStep) {
+        dupWarnEl.style.display = "block";
+        dupWarnEl.textContent = `💡 Ya contaste cómo creaste "${np.step1Obj}" en First. Elige la otra actividad STEAM en Then o cambia el verbo a "painted" / "worked on".`;
+      } else {
+        dupWarnEl.style.display = "none";
+      }
+    }
+
+    /* Materiales con alto contraste (.mat-chip) */
+    const matsWrap = document.getElementById("np-step2-mats");
+    if (matsWrap) {
+      matsWrap.innerHTML = s2.materialChips
+        .map((m) => {
+          const active = (np.step2Materials || []).includes(m.en);
+          return `
+            <button type="button" class="mat-chip ${active ? "is-selected" : ""}" data-np-mat="${escapeHtml(m.en)}">
+              <span>${active ? "✓ " : "+ "}${escapeHtml(m.en)}</span>
+              <span class="es-mini">(${escapeHtml(m.es)})</span>
+            </button>`;
+        })
+        .join("");
+
+      matsWrap.querySelectorAll("[data-np-mat]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.getAttribute("data-np-mat");
+          const list = np.step2Materials || [];
+          np.step2Materials = list.includes(val) ? list.filter((x) => x !== val) : list.concat([val]);
+          window.AppStorage.save(state);
+          renderStation2Newspaper();
+        });
+      });
+    }
+
+    const learnWrap = document.getElementById("np-step3-learn");
+    if (learnWrap) {
+      learnWrap.innerHTML = s2.learningChips
+        .map(
+          (l) => `
+          <button type="button" class="editorial-opt-btn editorial-opt-green ${np.step3Learning === l.en ? "is-selected" : ""}" data-np-learn="${escapeHtml(l.en)}">
+            <span class="opt-en">${np.step3Learning === l.en ? "✓ " : ""}${escapeHtml(l.en)}</span>
+            <span class="opt-es">${escapeHtml(l.es)}</span>
+          </button>`
+        )
+        .join("");
+
+      learnWrap.querySelectorAll("[data-np-learn]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.getAttribute("data-np-learn");
+          np.step3Learning = np.step3Learning === val ? "" : val;
+          window.AppStorage.save(state);
+          renderStation2Newspaper();
+        });
+      });
+    }
+
+    /* 6. Photo mode selector */
+    const photoRow = document.getElementById("np-photo-modes");
+    if (photoRow) {
+      photoRow.innerHTML = s2.photoModes
+        .map(
+          (pm) => `
+          <button type="button" class="photo-mode-btn ${np.photoMode === pm.id ? "is-active" : ""}" data-np-photo="${pm.id}">
+            ${escapeHtml(pm.label)}
+          </button>`
+        )
+        .join("");
+
+      photoRow.querySelectorAll("[data-np-photo]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          np.photoMode = btn.getAttribute("data-np-photo");
+          window.AppStorage.save(state);
+          renderStation2Newspaper();
+        });
+      });
+    }
+
+    /* 7. Renderizar Portada Broadsheet en Vivo */
+    const paperEl = document.getElementById("broadsheet-paper");
+    const isAllReady = built.completedCount === 5;
+    if (paperEl) {
+      paperEl.classList.toggle("hide-highlights", !np.highlightPastVerbs);
+      paperEl.classList.toggle("show-blueprint", Boolean(np.showExamBlueprint));
+      paperEl.classList.toggle("is-complete-edition", isAllReady);
+    }
+
+    const hlBtn = document.getElementById("np-toggle-highlights-btn");
+    if (hlBtn) {
+      hlBtn.classList.toggle("is-on", Boolean(np.highlightPastVerbs));
+      hlBtn.textContent = np.highlightPastVerbs
+        ? "🖍️ Verbos Past Simple: SÍ"
+        : "🖍️ Verbos Past Simple: NO";
+    }
+    const bpBtn = document.getElementById("np-toggle-blueprint-btn");
+    if (bpBtn) {
+      bpBtn.classList.toggle("is-on", Boolean(np.showExamBlueprint));
+      bpBtn.textContent = np.showExamBlueprint
+        ? "📋 Guía 5 Partes: SÍ"
+        : "📋 Guía 5 Partes: NO";
+    }
+    const memBtn = document.getElementById("np-toggle-memory-btn");
+    if (memBtn) {
+      memBtn.classList.toggle("is-memory-on", Boolean(np.memoryMode));
+      memBtn.textContent = np.memoryMode
+        ? "🧠 Modo Memoria: SÍ"
+        : "🧠 Modo Memoria: NO";
+    }
+
+    const nameOut = document.getElementById("paper-name-out");
+    if (nameOut) {
+      nameOut.innerHTML = built.checks.name
+        ? escapeHtml(np.name.trim())
+        : `<span class="paper-placeholder">1. Elige o escribe el NAME del periódico</span>`;
+    }
+
+    const titleOut = document.getElementById("paper-title-out");
+    if (titleOut) {
+      titleOut.innerHTML = built.checks.title
+        ? escapeHtml(np.title.trim())
+        : `<span class="paper-placeholder">2. Elige o escribe el TITLE de tu noticia</span>`;
+    }
+
+    const photoFrame = document.getElementById("paper-photo-frame");
+    const photoCaption = document.getElementById("paper-photo-caption");
+    const activePhoto = s2.photoModes.find((p) => p.id === np.photoMode) || s2.photoModes[0];
+    if (photoFrame && activePhoto) {
+      if (activePhoto.src) {
+        photoFrame.innerHTML = `<img src="${escapeHtml(activePhoto.src)}" alt="Miguel Ángel — Proyecto STEAM" style="object-position: ${escapeHtml(activePhoto.objectPos || "center")};">`;
+      } else {
+        photoFrame.innerHTML = `
+          <div class="paper-sketch-box">
+            <span style="font-size: 1.8rem;">✏️</span>
+            <strong>Espacio para tu dibujo el Martes</strong>
+            <span>Dibuja aquí tu Maze y tu Dream Catcher cuando hagas el periódico en clase.</span>
+          </div>`;
+      }
+    }
+    if (photoCaption && activePhoto) {
+      photoCaption.textContent = activePhoto.captionEn;
+    }
+
+    const whoOut = document.getElementById("paper-who-out");
+    if (whoOut) {
+      whoOut.innerHTML = built.checks.who
+        ? built.whoSentenceHtml
+        : `<span class="paper-placeholder">3. Selecciona quiénes participaron</span>`;
+    }
+
+    const whereOut = document.getElementById("paper-where-out");
+    if (whereOut) {
+      whereOut.innerHTML = built.checks.where
+        ? built.whereSentenceHtml
+        : `<span class="paper-placeholder">4. Selecciona dónde se hizo el proyecto</span>`;
+    }
+
+    const whatOut = document.getElementById("paper-what-out");
+    if (whatOut) {
+      if (built.storyHtmlParts.length > 0) {
+        whatOut.classList.remove("is-placeholder-copy");
+        whatOut.innerHTML = `<span class="paper-dateline">BENEDICTINO PRESS —</span> ${built.storyHtmlParts.join(" ")}`;
+      } else {
+        whatOut.classList.add("is-placeholder-copy");
+        whatOut.innerHTML = `<span class="paper-placeholder">5. Arma First, Then, We used y Finally con verbos en Past Simple...</span>`;
+      }
+    }
+
+    /* Enlazar clics interactivos de Modo Memoria dentro del Periódico */
+    const memBanner = document.getElementById("np-memory-banner");
+    const memCounter = document.getElementById("np-memory-counter");
+    if (paperEl && np.memoryMode) {
+      const memButtons = paperEl.querySelectorAll("[data-mem-key]");
+      const totalMem = memButtons.length;
+      let revealedCount = 0;
+      memButtons.forEach((b) => {
+        if (b.classList.contains("is-revealed")) revealedCount += 1;
+        b.addEventListener("click", () => {
+          const key = b.getAttribute("data-mem-key");
+          const word = b.getAttribute("data-mem-word");
+          revealedMemoryKeys.add(key);
+          renderStation2Newspaper();
+          if (word) window.AppSpeech.speak(word, showToast);
+        });
+      });
+
+      if (memBanner) memBanner.classList.add("is-visible");
+      if (memCounter) {
+        if (totalMem === 0) {
+          memCounter.textContent = "🧠 Completa alguna sección con verbos en pasado para activar los cuadros sorpresa.";
+        } else if (revealedCount === totalMem) {
+          memCounter.textContent = `🏆 ¡Excelente Miguel! Recordaste los ${totalMem} verbos en Past Simple de tu periódico.`;
+        } else {
+          memCounter.textContent = `🧠 Verbos recordados: ${revealedCount} de ${totalMem}. Toca cada cuadro "???" para revelar y escuchar.`;
+        }
+      }
+    } else if (memBanner) {
+      memBanner.classList.remove("is-visible");
+    }
+
+    /* 8. Estado de Validación y Audio Desbloqueable */
+    const actionsBox = document.getElementById("np-actions-box");
+    const statusBadge = document.getElementById("np-status-badge");
+    const speakFullBtn = document.getElementById("np-speak-full-btn");
+    const speakWhatBtn = document.getElementById("np-speak-what-btn");
+
+    if (actionsBox) actionsBox.classList.toggle("is-ready", isAllReady);
+    if (statusBadge) {
+      statusBadge.classList.remove("status-idle", "status-progress", "status-wrong", "status-correct");
+      if (built.isDuplicateStep) {
+        statusBadge.classList.add("status-wrong");
+        statusBadge.textContent = "💡 Revisa el Paso 5 (Then): elige una actividad o verbo diferente a First.";
+      } else if (isAllReady) {
+        statusBadge.classList.add("status-correct");
+        statusBadge.textContent = "✅ ¡Periódico STEAM completo (5/5 partes + Past Simple)! Ya puedes escucharlo entero.";
+      } else if (built.completedCount > 0) {
+        const missing = stepLabels.filter((s) => !built.checks[s.key]).map((s) => s.label);
+        statusBadge.classList.add("status-progress");
+        statusBadge.textContent = `⏳ Llevas ${built.completedCount} de 5 partes. Falta: ${missing.join(", ")}.`;
+      } else {
+        statusBadge.classList.add("status-idle");
+        statusBadge.textContent = "🧩 Completa las 5 partes del periódico a la izquierda para activar el audio.";
+      }
+    }
+
+    if (speakFullBtn) {
+      speakFullBtn.disabled = !isAllReady;
+      speakFullBtn.classList.toggle("is-unlocked", isAllReady);
+      speakFullBtn.textContent = isAllReady
+        ? "🔊 Escuchar Periódico Completo"
+        : `🔒 Completa las 5 partes (${built.completedCount}/5)`;
+      speakFullBtn.dataset.fullText = built.fullPlain;
+    }
+
+    if (speakWhatBtn) {
+      speakWhatBtn.disabled = !built.whatPlain;
+      speakWhatBtn.dataset.whatText = built.whatPlain;
+    }
+  }
+
+  function syncStation2InputsFromState() {
+    const np = state.newspaper;
+    const map = [
+      ["np-name-input", np.name],
+      ["np-title-input", np.title],
+      ["np-who-extra", np.whoExtraEn],
+      ["np-where-extra-es", np.whereExtraEs],
+      ["np-where-extra", np.whereExtraEn],
+      ["np-extra-es", np.extraStepEs],
+      ["np-extra-en", np.extraStepEn]
+    ];
+    map.forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val || "";
+    });
+    renderWhereBilingualChips();
+    renderExtraStepBilingualChips();
+  }
+
+  function initStation2() {
+    const tmBtn = document.getElementById("tm-toggle-btn");
+    if (tmBtn) {
+      tmBtn.addEventListener("click", () => {
+        tmIsPast = !tmIsPast;
+        renderStation2TimeMachine();
+      });
+    }
+
+    syncStation2InputsFromState();
+    renderStation2TimeMachine();
+    renderStation2Quiz();
+    renderStation2Newspaper();
+
+    const bindInput = (id, key) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        state.newspaper[key] = el.value;
+        window.AppStorage.save(state);
+        renderStation2Newspaper();
+      });
+    };
+
+    bindInput("np-name-input", "name");
+    bindInput("np-title-input", "title");
+    bindInput("np-who-extra", "whoExtraEn");
+    bindInput("np-where-extra", "whereExtraEn");
+    bindInput("np-extra-en", "extraStepEn");
+
+    /* Asistente bilingüe para WHERE extra (P0-4 fix) */
+    const whereEs = document.getElementById("np-where-extra-es");
+    if (whereEs) {
+      whereEs.addEventListener("input", () => {
+        state.newspaper.whereExtraEs = whereEs.value;
+        window.AppStorage.save(state);
+        renderWhereBilingualChips();
+      });
+    }
+
+    /* Asistente bilingüe para la oración extra opcional */
+    const extraEs = document.getElementById("np-extra-es");
+    if (extraEs) {
+      extraEs.addEventListener("input", () => {
+        state.newspaper.extraStepEs = extraEs.value;
+        window.AppStorage.save(state);
+        renderExtraStepBilingualChips();
+      });
+    }
+
+    const hlBtn = document.getElementById("np-toggle-highlights-btn");
+    if (hlBtn) {
+      hlBtn.addEventListener("click", () => {
+        state.newspaper.highlightPastVerbs = !state.newspaper.highlightPastVerbs;
+        window.AppStorage.save(state);
+        renderStation2Newspaper();
+      });
+    }
+
+    const bpBtn = document.getElementById("np-toggle-blueprint-btn");
+    if (bpBtn) {
+      bpBtn.addEventListener("click", () => {
+        state.newspaper.showExamBlueprint = !state.newspaper.showExamBlueprint;
+        window.AppStorage.save(state);
+        renderStation2Newspaper();
+      });
+    }
+
+    const memBtn = document.getElementById("np-toggle-memory-btn");
+    if (memBtn) {
+      memBtn.addEventListener("click", () => {
+        state.newspaper.memoryMode = !state.newspaper.memoryMode;
+        revealedMemoryKeys = new Set();
+        window.AppStorage.save(state);
+        renderStation2Newspaper();
+        if (state.newspaper.memoryMode) {
+          showToast("🧠 Modo Memoria activado: toca cada cuadro ??? para recordar el verbo en pasado.");
+        }
+      });
+    }
+
+    const memResetBtn = document.getElementById("np-memory-reset-btn");
+    if (memResetBtn) {
+      memResetBtn.addEventListener("click", () => {
+        revealedMemoryKeys = new Set();
+        renderStation2Newspaper();
+        showToast("🔄 Verbos ocultos de nuevo. ¡A practicar!");
+      });
+    }
+
+    const speakFullBtn = document.getElementById("np-speak-full-btn");
+    if (speakFullBtn) {
+      speakFullBtn.addEventListener("click", () => {
+        if (speakFullBtn.disabled || !speakFullBtn.dataset.fullText) return;
+        window.AppSpeech.speak(speakFullBtn.dataset.fullText, showToast);
+      });
+    }
+
+    const speakWhatBtn = document.getElementById("np-speak-what-btn");
+    if (speakWhatBtn) {
+      speakWhatBtn.addEventListener("click", () => {
+        if (speakWhatBtn.disabled || !speakWhatBtn.dataset.whatText) return;
+        window.AppSpeech.speak(speakWhatBtn.dataset.whatText, showToast);
+      });
+    }
+
+    const demoBtn = document.getElementById("np-fill-demo-btn");
+    if (demoBtn) {
+      demoBtn.addEventListener("click", () => {
+        revealedMemoryKeys = new Set();
+        state.newspaper = Object.assign({}, state.newspaper, {
+          name: "THE BENEDICTINO STEAM TIMES",
+          title: "Making a Maze and a Dream Catcher!",
+          whoSelected: ["who-classmates", "who-teachers"],
+          whoExtraEs: "",
+          whoExtraEn: "",
+          whereSelected: ["wh-classroom", "wh-school"],
+          whereExtraEs: "",
+          whereExtraEn: "",
+          step1Verb: "created",
+          step1Obj: "the maze",
+          step2Verb: "made",
+          step2Obj: "the dream catcher",
+          step2Materials: ["cardboard", "wool and thread", "colors and markers"],
+          step3Learning: "how to build a maze and a dream catcher",
+          extraStepEs: "",
+          extraStepEn: ""
+        });
+        window.AppStorage.save(state);
+        syncStation2InputsFromState();
+        renderStation2Newspaper();
+        showToast("⚡ Borrador guía cargado. ¡Personalízalo con Miguel!");
+      });
+    }
+
+    const clearAllBtn = document.getElementById("np-clear-all-btn");
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener("click", () => {
+        revealedMemoryKeys = new Set();
+        state.newspaper = Object.assign({}, state.newspaper, {
+          name: "",
+          title: "",
+          whoSelected: [],
+          whoExtraEs: "",
+          whoExtraEn: "",
+          whereSelected: [],
+          whereExtraEs: "",
+          whereExtraEn: "",
+          step1Verb: "",
+          step1Obj: "",
+          step2Verb: "",
+          step2Obj: "",
+          step2Materials: [],
+          step3Learning: "",
+          extraStepEs: "",
+          extraStepEn: "",
+          memoryMode: false
+        });
+        window.AppStorage.save(state);
+        syncStation2InputsFromState();
+        renderStation2Newspaper();
+        showToast("Periódico limpiado para empezar desde cero.");
+      });
+    }
+  }
+
   /* --- Respaldo y Reinicio --- */
   function initStorageActions() {
     const exportBtn = document.getElementById("export-json-btn");
@@ -1091,11 +2118,17 @@
         window.AppSpeech.setRate(state.speechRate);
         selectedPieceIds = [];
         compDraft = { item1Id: null, verb: "was", adjId: null, hasThan: false, item2Id: null };
+        tmIsPast = false;
+        revealedMemoryKeys = new Set();
         renderBank();
         renderStation0Builder();
         renderStation1Quiz();
         renderStation1Builder();
         renderSavedComparatives();
+        syncStation2InputsFromState();
+        renderStation2TimeMachine();
+        renderStation2Quiz();
+        renderStation2Newspaper();
         showToast("Datos reiniciados correctamente.");
       });
     }
@@ -1111,6 +2144,7 @@
     initAddBankForm();
     initStation0Builder();
     initStation1();
+    initStation2();
     initStorageActions();
   });
 })();
