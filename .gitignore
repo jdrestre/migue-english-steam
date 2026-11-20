@@ -1,8 +1,9 @@
-# Privacidad: excluir pantallazo del correo docente y metadatos Windows
+# Privacidad: excluir pantallazo del correo docente en la raíz y metadatos Windows
 Correo_Recuperación.jpeg
-*.jpeg
-*.jpg
+/*.jpeg
+/*.jpg
 *:Zone.Identifier
+!assets/images/**
 
 # Sistema operativo y temporales
 .DS_Store
