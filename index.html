@@ -399,7 +399,19 @@
         </p>
 
         <div class="tm-header-bar" id="tm-header-bar">
-          <div>
+          <button type="button" class="tm-portal-btn" id="tm-portal-btn" aria-label="Cambiar la Máquina del Tiempo entre Presente y Pasado" title="Toca para viajar entre Hoy y Ayer">
+            <span class="tm-portal-flipper" aria-hidden="true">
+              <span class="tm-portal-face tm-portal-front">
+                <img src="assets/images/miguel-retrato.jpg" alt="Miguel Ángel hoy (Presente)">
+                <span class="tm-portal-tag tm-tag-present">HOY</span>
+              </span>
+              <span class="tm-portal-face tm-portal-back">
+                <img src="assets/images/miguel-constructor.jpg" alt="Miguel Ángel antes (Past Simple)">
+                <span class="tm-portal-tag tm-tag-past">AYER</span>
+              </span>
+            </span>
+          </button>
+          <div class="tm-copy-col">
             <strong id="tm-mode-title">⏰ Modo Actual: HOY — PRESENTE</strong>
             <p id="tm-mode-sub">Oprime el botón para viajar a AYER y ver cómo los verbos cambian a Naranja (Past Simple).</p>
           </div>

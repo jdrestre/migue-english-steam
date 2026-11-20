@@ -1934,12 +1934,13 @@
 
   function initStation2() {
     const tmBtn = document.getElementById("tm-toggle-btn");
-    if (tmBtn) {
-      tmBtn.addEventListener("click", () => {
-        tmIsPast = !tmIsPast;
-        renderStation2TimeMachine();
-      });
-    }
+    const tmPortalBtn = document.getElementById("tm-portal-btn");
+    const toggleTimeMachine = () => {
+      tmIsPast = !tmIsPast;
+      renderStation2TimeMachine();
+    };
+    if (tmBtn) tmBtn.addEventListener("click", toggleTimeMachine);
+    if (tmPortalBtn) tmPortalBtn.addEventListener("click", toggleTimeMachine);
 
     syncStation2InputsFromState();
     renderStation2TimeMachine();

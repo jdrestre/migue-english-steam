@@ -1241,18 +1241,18 @@ details.neuro-details summary::-webkit-details-marker {
 
 /* ==================== ESTACIÓN 2: STEAM NEWSPAPER & PAST SIMPLE (R2 AWWWARDS) ==================== */
 
-/* Time Machine Warmup */
+/* Time Machine Warmup + Minimalist 3D Photo Time-Portal */
 .tm-header-bar {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 16px;
   padding: 16px 18px;
-  border-radius: 14px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
   color: #ffffff;
   margin-bottom: 14px;
-  transition: background 0.35s ease, box-shadow 0.35s ease;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.16);
 }
 
@@ -1261,10 +1261,122 @@ details.neuro-details summary::-webkit-details-marker {
   box-shadow: 0 8px 24px rgba(194, 65, 12, 0.28);
 }
 
+.tm-copy-col {
+  min-width: 0;
+}
+
 .tm-header-bar p {
   margin: 3px 0 0;
   font-size: 0.86rem;
   color: rgba(255, 255, 255, 0.88);
+}
+
+.tm-portal-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  width: 82px;
+  height: 82px;
+  perspective: 700px;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.tm-portal-btn:focus-visible {
+  outline: 3px solid #fbbf24;
+  outline-offset: 4px;
+  border-radius: 22px;
+}
+
+.tm-portal-flipper {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.68s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tm-portal-btn:hover .tm-portal-flipper {
+  transform: scale(1.04);
+}
+
+.tm-header-bar.is-past-banner .tm-portal-flipper {
+  transform: rotateY(180deg);
+}
+
+.tm-header-bar.is-past-banner .tm-portal-btn:hover .tm-portal-flipper {
+  transform: rotateY(180deg) scale(1.04);
+}
+
+.tm-portal-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 2.5px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  background: #1e293b;
+}
+
+.tm-portal-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  display: block;
+}
+
+.tm-portal-back {
+  transform: rotateY(180deg);
+  border-color: rgba(253, 186, 116, 0.9);
+}
+
+.tm-portal-back img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  filter: sepia(0.12) contrast(1.04);
+  display: block;
+}
+
+.tm-portal-tag {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  line-height: 1.25;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.tm-tag-present {
+  background: rgba(15, 23, 42, 0.86);
+  color: #93c5fd;
+  border: 1px solid rgba(147, 197, 253, 0.65);
+}
+
+.tm-tag-past {
+  background: rgba(124, 45, 18, 0.9);
+  color: #fef3c7;
+  border: 1px solid rgba(253, 186, 116, 0.75);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-portal-flipper {
+    transition: none;
+  }
 }
 
 .tm-toggle-btn {
@@ -2180,7 +2292,20 @@ details.neuro-details summary::-webkit-details-marker {
 
 @media (max-width: 680px) {
   .tm-header-bar {
-    grid-template-columns: 1fr;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .tm-portal-btn {
+    width: 72px;
+    height: 72px;
+  }
+
+  .tm-toggle-btn {
+    grid-column: 1 / -1;
+    justify-content: center;
+    width: 100%;
   }
 
   .tm-grid {
