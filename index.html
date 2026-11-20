@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Misión STEAM: English A1 — Miguel Ángel</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="container header-row">
+      <div class="brand-block">
+        <div class="brand-icon" aria-hidden="true">🚀</div>
+        <div>
+          <h1 class="brand-title">Misión STEAM: English A1</h1>
+          <p class="brand-sub">Miguel Ángel • 3° Primaria • Colegio Benedictino de Santa María</p>
+        </div>
+      </div>
+
+      <div class="header-tools">
+        <div class="tool-pill" title="Temporizador neuroeducativo: 15 min de enfoque + 5 min de pausa">
+          <span>⏱️</span>
+          <strong id="timer-display">15:00</strong>
+          <button type="button" class="pill-btn" id="timer-toggle-btn">Iniciar</button>
+          <button type="button" class="pill-btn" id="timer-mode-btn">Estudio 15m</button>
+        </div>
+
+        <div class="tool-pill" title="Velocidad de pronunciación en inglés">
+          <span>🔊 Voz EN:</span>
+          <button type="button" class="pill-btn" id="rate-slow-btn">Despacio</button>
+          <button type="button" class="pill-btn" id="rate-normal-btn">Normal</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="station-nav-wrap" aria-label="Estaciones de la Misión STEAM">
+    <div class="container station-nav" role="tablist">
+      <button type="button" class="station-tab is-active" role="tab" aria-selected="true" data-station="station-0">
+        <span>🗺️ Estación 0: Mapa y Banco</span>
+        <span class="tab-badge ready">Activa</span>
+      </button>
+      <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-1">
+        <span>⚖️ Estación 1: Comparatives</span>
+        <span class="tab-badge">Fase 1</span>
+      </button>
+      <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-2">
+        <span>📰 Estación 2: Newspaper</span>
+        <span class="tab-badge">Fase 2</span>
+      </button>
+      <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-3">
+        <span>💬 Estación 3: 5 Preguntas</span>
+        <span class="tab-badge">Fase 3</span>
+      </button>
+      <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-4">
+        <span>🏆 Estación 4: Reto Martes</span>
+        <span class="tab-badge">Fase 4</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- ==================== ESTACIÓN 0 (ACTIVA EN FASE 0) ==================== -->
+    <section id="station-0" class="station-panel is-active" role="tabpanel">
+      <div class="card hero-card">
+        <div class="hero-grid">
+          <div class="hero-text">
+            <span class="role-tag role-miguel">Modo Acompañamiento Bilingüe • Recuperación Martes 8-10 a.m.</span>
+            <h2>¡Hola Miguel Ángel! Bienvenido a tu Misión STEAM</h2>
+            <p>
+              Igual que practicar una canción en el <strong>piano</strong>, subir de nivel en <strong>Fortnite</strong>
+              o superar un reto de <strong>MrBeast</strong>, esta recuperación se domina paso a paso.
+              Tus papás te explican cada idea en español y tú armas tus respuestas reales en inglés A1.
+            </p>
+            <div class="interest-pills">
+              <span class="interest-pill">🎹 Piano y Música</span>
+              <span class="interest-pill">🎮 Fortnite en Play</span>
+              <span class="interest-pill">▶️ Retos tipo MrBeast</span>
+            </div>
+          </div>
+          <div>
+            <button type="button" class="btn btn-audio" id="welcome-audio-btn">
+              🔊 Probar voz en Inglés
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Código de Colores LEGO + Neuroeducación -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🧩 Código de Colores LEGO (Para entender cada oración en segundos)</h3>
+          <span class="role-tag role-parents">Guía Papás (Español)</span>
+        </div>
+
+        <div class="lego-grid" id="lego-legend-grid"></div>
+
+        <details class="neuro-details">
+          <summary>
+            <span>🧠 5 Reglas de Neuroeducación para estudiar con Miguel sin estrés</span>
+            <span>▼ Ver guía</span>
+          </summary>
+          <ol class="neuro-list" id="neuro-rules-list"></ol>
+        </details>
+      </div>
+
+      <!-- Banco Veraz de Actividades STEAM y Fiestas Culturales -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">📦 Banco Veraz de Actividades STEAM y Fiestas Culturales</h3>
+          <span class="role-tag role-both" id="bank-count-badge">2 elementos activos</span>
+        </div>
+        <p class="helper-note">
+          Empezamos únicamente con las 2 actividades confirmadas en el correo de la Miss (<strong>The Maze</strong> y
+          <strong>The Dream Catcher</strong>). Si revisan el cuaderno y confirman fiestas culturales o tareas adicionales,
+          agréguenlas aquí para usarlas automáticamente en todas las estaciones.
+        </p>
+
+        <div class="bank-grid" id="bank-items-grid"></div>
+
+        <div class="add-form-box">
+          <h4>➕ Agregar Fiesta Cultural o Actividad STEAM del Cuaderno</h4>
+          <p class="helper-note">
+            Sugerencias opcionales (haz clic solo si realmente la vieron en clase durante el 3er periodo):
+          </p>
+          <div class="chip-row" id="optional-cultural-chips"></div>
+
+          <form id="add-bank-form">
+            <div class="form-grid">
+              <div class="field">
+                <label for="new-item-cat">Tipo</label>
+                <select id="new-item-cat">
+                  <option value="cultural">Fiesta / Evento Cultural</option>
+                  <option value="steam">Actividad STEAM</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="new-item-es">Nombre en Español</label>
+                <input type="text" id="new-item-es" placeholder="Ej. Feria de las Flores">
+              </div>
+              <div class="field">
+                <label for="new-item-en">Nombre en Inglés (A1)</label>
+                <input type="text" id="new-item-en" placeholder="Ej. Flower Fair">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">+ Agregar al Banco</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Probador Bilingüe Interactivo para Miguel -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">✨ Prueba el Puente Bilingüe de Miguel (Español ↔ Inglés A1)</h3>
+          <span class="role-tag role-miguel">Espacio Interactivo de Miguel</span>
+        </div>
+        <p class="helper-note">
+          Prueba cómo funcionarán los espacios de opinión de Miguel: él puede escribir en español, hacer clic en las
+          palabras sugeridas en inglés o escribir directamente en inglés y escuchar cómo suena.
+        </p>
+
+        <div class="chip-row">
+          <button type="button" class="word-chip" data-sandbox-demo
+            data-demo-es="El laberinto fue más difícil que el atrapasueños"
+            data-demo-en="The maze was more difficult than the dream catcher.">
+            Ejemplo STEAM: Maze vs Dream Catcher
+          </button>
+          <button type="button" class="word-chip" data-sandbox-demo
+            data-demo-es="Tocar piano es divertido y creativo"
+            data-demo-en="Playing the piano is fun and creative.">
+            Ejemplo Gustos: Piano 🎹
+          </button>
+          <button type="button" class="word-chip" data-sandbox-demo
+            data-demo-es="Los retos de MrBeast son emocionantes"
+            data-demo-en="MrBeast challenges are exciting.">
+            Ejemplo Gustos: MrBeast ▶️
+          </button>
+        </div>
+
+        <div class="bilingual-split">
+          <div>
+            <div class="field" style="margin-bottom: 10px;">
+              <label for="sandbox-input-es">1. Idea de Miguel (Español o Inglés)</label>
+              <textarea id="sandbox-input-es" rows="2" placeholder="Ej. El atrapasueños fue fácil y divertido..."></textarea>
+            </div>
+            <div class="chip-row" id="sandbox-chips"></div>
+            <div class="field">
+              <label for="sandbox-input-en">2. Resultado en Inglés A1 (Editable)</label>
+              <textarea id="sandbox-input-en" rows="2" placeholder="Aquí se arma la frase en inglés..."></textarea>
+            </div>
+          </div>
+
+          <div class="preview-box">
+            <div class="preview-label">Vista Previa en Vivo (Inglés A1)</div>
+            <div class="preview-output" id="sandbox-preview-output"></div>
+            <button type="button" class="btn btn-audio btn-sm" id="sandbox-speak-btn">
+              🔊 Escuchar frase de Miguel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Persistencia -->
+      <div class="card no-print">
+        <div class="status-bar">
+          <span>💾 Todo lo que agregues o escribas se guarda automáticamente solo en este navegador (privado).</span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" id="export-json-btn">Descargar respaldo (.json)</button>
+            <button type="button" class="btn btn-danger-soft" id="reset-data-btn">Reiniciar datos de prueba</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ESTACIONES 1 A 4 (PRÓXIMAS FASES) ==================== -->
+    <section id="station-1" class="station-panel" role="tabpanel">
+      <div class="card upcoming-card">
+        <div class="upcoming-icon">⚖️</div>
+        <h2>Estación 1: Comparatives Builder (Próxima Fase 1)</h2>
+        <p>Se construirá y publicará después de que revises y apruebes esta Estación 0.</p>
+        <div class="upcoming-preview-list">
+          <span>• Calentamiento rápido con <strong>Piano</strong>, <strong>Fortnite en Play</strong> y <strong>MrBeast</strong>.</span>
+          <span>• Constructor LEGO por colores (`-er than`, `more ... than`, `better than`).</span>
+          <span>• Comparativos con las actividades y fiestas guardadas en tu Estación 0.</span>
+        </div>
+        <div>
+          <button type="button" class="btn btn-primary" data-goto-station="station-0">Volver a Estación 0</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="station-2" class="station-panel" role="tabpanel">
+      <div class="card upcoming-card">
+        <div class="upcoming-icon">📰</div>
+        <h2>Estación 2: STEAM Newspaper + Past Simple (Próxima Fase 2)</h2>
+        <p>Se construirá y publicará al aprobar la Estación 1.</p>
+        <div class="upcoming-preview-list">
+          <span>• Calentamiento de verbos en pasado con gustos de Miguel (`played`, `practiced`, `watched`).</span>
+          <span>• Taller guiado de las 5 partes del periódico (`NAME`, `TITLE`, `WHO`, `WHERE`, `WHAT DID YOU DO`).</span>
+          <span>• Vista previa de portada de periódico escolar en tiempo real.</span>
+        </div>
+        <div>
+          <button type="button" class="btn btn-primary" data-goto-station="station-0">Volver a Estación 0</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="station-3" class="station-panel" role="tabpanel">
+      <div class="card upcoming-card">
+        <div class="upcoming-icon">💬</div>
+        <h2>Estación 3: 5 Preguntas de Metacognición (Próxima Fase 3)</h2>
+        <p>Se construirá y publicará al aprobar la Estación 2.</p>
+        <div class="upcoming-preview-list">
+          <span>• Las 5 preguntas exactas de la Miss con "Palabra Llave" resaltada.</span>
+          <span>• Botones de opinión A1 + espacio libre en español/inglés con conector `because`.</span>
+          <span>• Audio en inglés para practicar comprensión y pronunciación.</span>
+        </div>
+        <div>
+          <button type="button" class="btn btn-primary" data-goto-station="station-0">Volver a Estación 0</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="station-4" class="station-panel" role="tabpanel">
+      <div class="card upcoming-card">
+        <div class="upcoming-icon">🏆</div>
+        <h2>Estación 4: Entrenador del Martes + Impresión (Próxima Fase 4)</h2>
+        <p>Se construirá y publicará al aprobar la Estación 3.</p>
+        <div class="upcoming-preview-list">
+          <span>• Reto de escritura `Fill in the Blanks` usando las propias respuestas de Miguel.</span>
+          <span>• Impresión limpia en 2 hojas (Periódico guía + Tarjetas de bolsillo de las 5 preguntas).</span>
+        </div>
+        <div>
+          <button type="button" class="btn btn-primary" data-goto-station="station-0">Volver a Estación 0</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/bilingual-helper.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

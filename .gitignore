@@ -1,0 +1,10 @@
+# Privacidad: excluir pantallazo del correo docente y metadatos Windows
+Correo_Recuperación.jpeg
+*.jpeg
+*.jpg
+*:Zone.Identifier
+
+# Sistema operativo y temporales
+.DS_Store
+Thumbs.db
+*.log
