@@ -25,6 +25,12 @@ window.AppSpeech = (function () {
     );
   }
 
+  function setSpeakingUi(active) {
+    if (document && document.body) {
+      document.body.classList.toggle("is-speaking", Boolean(active));
+    }
+  }
+
   function speak(text, onNotice) {
     if (!text || !text.trim()) return;
     if (!isSupported()) {
@@ -39,9 +45,19 @@ window.AppSpeech = (function () {
       utterance.pitch = 1.02;
       const voice = pickEnglishVoice();
       if (voice) utterance.voice = voice;
+      utterance.onstart = function () {
+        setSpeakingUi(true);
+      };
+      utterance.onend = function () {
+        setSpeakingUi(false);
+      };
+      utterance.onerror = function () {
+        setSpeakingUi(false);
+      };
       window.speechSynthesis.speak(utterance);
       if (onNotice) onNotice("Escuchando en inglés...");
     } catch (err) {
+      setSpeakingUi(false);
       if (onNotice) onNotice("No se pudo reproducir el audio en este dispositivo.");
     }
   }

@@ -480,6 +480,217 @@ window.APP_DATA = {
     ]
   },
 
+  /* ==================== ESTACIÓN 3: 5 PREGUNTAS DE METACOGNICIÓN ==================== */
+  station3Data: {
+    whyWarmups: [
+      {
+        id: "wu-piano",
+        icon: "🎹",
+        topic: "Piano y Música",
+        q: "Why do you like playing the piano?",
+        qEs: "¿Por qué te gusta tocar el piano?",
+        blue: "I like playing the piano",
+        green: "because",
+        purple: "making music is fun and relaxing",
+        fullEn: "I like playing the piano because making music is fun and relaxing.",
+        fullEs: "Me gusta tocar el piano porque hacer música es divertido y relajante."
+      },
+      {
+        id: "wu-fortnite",
+        icon: "🎮",
+        topic: "Fortnite en Play",
+        q: "Why do you like playing Fortnite on Play?",
+        qEs: "¿Por qué te gusta jugar Fortnite en Play?",
+        blue: "I like playing Fortnite on Play",
+        green: "because",
+        purple: "it is exciting and creative",
+        fullEn: "I like playing Fortnite on Play because it is exciting and creative.",
+        fullEs: "Me gusta jugar Fortnite en Play porque es emocionante y creativo."
+      },
+      {
+        id: "wu-mrbeast",
+        icon: "▶️",
+        topic: "YouTube MrBeast",
+        q: "Why do you like watching MrBeast?",
+        qEs: "¿Por qué te gusta ver a MrBeast?",
+        blue: "I like watching MrBeast",
+        green: "because",
+        purple: "his challenges are surprising",
+        fullEn: "I like watching MrBeast because his challenges are surprising.",
+        fullEs: "Me gusta ver a MrBeast porque sus retos son sorprendentes."
+      }
+    ],
+
+    keywordRadar: [
+      {
+        id: "kr-q1",
+        questionEn: "What was your favorite task in STEAM? Why?",
+        keyword: "favorite task",
+        correctKey: "favorite",
+        options: [
+          { key: "favorite", label: "⭐ Cuál fue tu tarea favorita" },
+          { key: "boring", label: "😴 Cuál fue la parte más aburrida" },
+          { key: "learn", label: "🧠 Qué aprendiste del proyecto" }
+        ],
+        tipOk: "¡Exacto! Cuando veas 'favorite task', habla de lo que MÁS te gustó + because.",
+        tipRetry: "Pista: busca la palabra 'favorite' (se parece mucho a 'favorita' en español)."
+      },
+      {
+        id: "kr-q2",
+        questionEn: "Was the maze process more difficult than making the dream catcher? Why?",
+        keyword: "more difficult than",
+        correctKey: "compare",
+        options: [
+          { key: "easier", label: "✨ Cuál tarea fue más fácil" },
+          { key: "compare", label: "⚖️ Si el laberinto fue más difícil que el atrapasueños" },
+          { key: "where", label: "🏫 Dónde se hizo el proyecto" }
+        ],
+        tipOk: "¡Muy bien! Empieza con 'Was...' (pregunta de Sí o No) + comparativo 'more difficult than'.",
+        tipRetry: "Pista: mira 'maze... more difficult than... dream catcher' — está comparando cuál fue más difícil."
+      },
+      {
+        id: "kr-q3",
+        questionEn: "Which STEAM task was easier for you? And why?",
+        keyword: "easier for you",
+        correctKey: "easier",
+        options: [
+          { key: "easier", label: "✨ Cuál tarea fue más fácil para ti" },
+          { key: "compare", label: "⚖️ Cuál tarea fue más difícil" },
+          { key: "favorite", label: "⭐ Quién participó contigo" }
+        ],
+        tipOk: "¡Súper! 'easier' viene de 'easy' (fácil) + -er = más fácil.",
+        tipRetry: "Pista: 'easier' viene de 'easy' (fácil). Pregunta cuál te pareció más fácil."
+      },
+      {
+        id: "kr-q4",
+        questionEn: "What was the most boring part of STEAM? Why?",
+        keyword: "most boring",
+        correctKey: "boring",
+        options: [
+          { key: "learn", label: "🧠 Qué aprendiste al final" },
+          { key: "favorite", label: "⭐ Tu actividad favorita" },
+          { key: "boring", label: "😴 Cuál fue la parte más aburrida" }
+        ],
+        tipOk: "¡Crack! 'most boring' significa 'la más aburrida'. Responde con respeto + because.",
+        tipRetry: "Pista: 'boring' significa 'aburrido'. Busca la opción que pregunta por la parte más aburrida."
+      },
+      {
+        id: "kr-q5",
+        questionEn: "What did you learn from this STEAM?",
+        keyword: "did you learn",
+        correctKey: "learn",
+        options: [
+          { key: "boring", label: "😴 Qué fue lo más lento" },
+          { key: "learn", label: "🧠 Qué aprendiste de este proyecto" },
+          { key: "easier", label: "✨ Qué materiales usaste" }
+        ],
+        tipOk: "¡Excelente! 'did you learn' pregunta en pasado: siempre responde con 'I learned...'.",
+        tipRetry: "Pista: 'learn' significa 'aprender'. Pregunta qué aprendiste en STEAM."
+      }
+    ],
+
+    officialQuestions: [
+      {
+        id: "q1",
+        shortLabel: "P1. Favorita",
+        questionEn: "What was your favorite task in STEAM? Why?",
+        questionHtml: "What was your <mark class=\"kw-highlight\">favorite task</mark> in STEAM? <mark class=\"kw-why\">Why</mark>?",
+        questionEs: "¿Cuál fue tu tarea favorita en STEAM? ¿Por qué?",
+        parentTip: "Guía papás: Miguel elige cuál tarea le gustó más, oprime el puente verde 'because' y cuenta su razón.",
+        usesSteamItems: true,
+        needsBecause: true,
+        reasons: [
+          { en: "it was fun and creative", es: "fue divertido y creativo" },
+          { en: "I liked designing and building it", es: "me gustó diseñarlo y construirlo" },
+          { en: "I loved using colors and materials", es: "me encantó usar colores y materiales" },
+          { en: "it was interesting to make", es: "fue interesante hacerlo" }
+        ]
+      },
+      {
+        id: "q2",
+        shortLabel: "P2. ¿Más difícil?",
+        questionEn: "Was the maze process more difficult than making the dream catcher? Why?",
+        questionHtml: "Was the <mark class=\"kw-highlight\">maze process more difficult than</mark> making the <mark class=\"kw-highlight\">dream catcher</mark>? <mark class=\"kw-why\">Why</mark>?",
+        questionEs: "¿El proceso del laberinto fue más difícil que hacer el atrapasueños? ¿Por qué?",
+        parentTip: "Guía papás: Como empieza con 'Was...', primero responde 'Yes, it was' o 'No, it wasn't' y luego 'because'.",
+        needsBecause: true,
+        mainOptions: [
+          { id: "yes", en: "Yes, it was", es: "Sí lo fue (el laberinto fue más difícil)" },
+          { id: "no", en: "No, it wasn't", es: "No lo fue (el atrapasueños fue más difícil)" }
+        ],
+        reasonsByMain: {
+          yes: [
+            { en: "the maze had many small parts", es: "el laberinto tenía muchas partes pequeñas" },
+            { en: "building the walls took more time", es: "construir las paredes tomó más tiempo" },
+            { en: "it needed more planning and patience", es: "necesitó más planeación y paciencia" }
+          ],
+          no: [
+            { en: "weaving the dream catcher was harder for me", es: "tejer el atrapasueños fue más difícil para mí" },
+            { en: "tying the thread took more patience", es: "amarrar el hilo tomó más paciencia" },
+            { en: "making the maze was easier for me", es: "hacer el laberinto fue más fácil para mí" }
+          ]
+        }
+      },
+      {
+        id: "q3",
+        shortLabel: "P3. Más fácil",
+        questionEn: "Which STEAM task was easier for you? And why?",
+        questionHtml: "Which STEAM task was <mark class=\"kw-highlight\">easier</mark> for you? And <mark class=\"kw-why\">why</mark>?",
+        questionEs: "¿Cuál tarea de STEAM fue más fácil para ti? ¿Y por qué?",
+        parentTip: "Guía papás: 'easier' = más fácil. Verifiquen que coincida con su opinión de la Pregunta 2.",
+        usesSteamItems: true,
+        needsBecause: true,
+        reasons: [
+          { en: "the steps were clear and simple", es: "los pasos fueron claros y simples" },
+          { en: "I used simple materials", es: "usé materiales simples" },
+          { en: "I enjoyed making it step by step", es: "disfruté hacerlo paso a paso" },
+          { en: "I worked well with my classmates", es: "trabajé bien con mis compañeros" }
+        ]
+      },
+      {
+        id: "q4",
+        shortLabel: "P4. Más aburrida",
+        questionEn: "What was the most boring part of STEAM? Why?",
+        questionHtml: "What was the <mark class=\"kw-highlight\">most boring</mark> part of STEAM? <mark class=\"kw-why\">Why</mark>?",
+        questionEs: "¿Cuál fue la parte más aburrida de STEAM? ¿Por qué?",
+        parentTip: "Guía papás: Puede ser honesto y respetuoso (ej. esperar que seque el pegante o cortar piezas), o decir que todo fue divertido.",
+        needsBecause: true,
+        mainOptions: [
+          { id: "glue", en: "waiting for the glue to dry", es: "esperar a que secara el pegante", positive: false },
+          { id: "cutting", en: "cutting the small pieces", es: "cortar las piezas pequeñas", positive: false },
+          { id: "repeating", en: "repeating a difficult step", es: "repetir un paso difícil", positive: false },
+          { id: "cleaning", en: "cleaning up the materials", es: "recoger y limpiar los materiales", positive: false },
+          { id: "nothing", en: "Nothing! Everything was fun", es: "¡Nada! Todo fue divertido", positive: true }
+        ],
+        reasonsStandard: [
+          { en: "it was slow", es: "era lento" },
+          { en: "it took a long time", es: "tomó mucho tiempo" },
+          { en: "I wanted to keep building", es: "yo quería seguir construyendo" },
+          { en: "it was repetitive", es: "era repetitivo" }
+        ],
+        reasonsPositive: [
+          { en: "I liked all the activities", es: "me gustaron todas las actividades" },
+          { en: "building with my classmates was exciting", es: "construir con mis compañeros fue emocionante" }
+        ]
+      },
+      {
+        id: "q5",
+        shortLabel: "P5. ¿Qué aprendiste?",
+        questionEn: "What did you learn from this STEAM?",
+        questionHtml: "What <mark class=\"kw-highlight\">did you learn</mark> from this STEAM?",
+        questionEs: "¿Qué aprendiste de este proyecto STEAM?",
+        parentTip: "Guía papás: Esta pregunta no tiene 'Why?'. Lo más importante es responder en pasado: 'I learned...' (nunca 'I did learned').",
+        needsBecause: false,
+        learnOptions: [
+          { id: "lrn-build", en: "how to make a maze and a dream catcher", es: "cómo hacer un laberinto y un atrapasueños" },
+          { id: "lrn-words", en: "new English words to compare activities", es: "nuevas palabras en inglés para comparar actividades" },
+          { id: "lrn-patience", en: "to work with patience and creativity", es: "a trabajar con paciencia y creatividad" },
+          { id: "lrn-news", en: "to write a STEAM newspaper in Past Simple", es: "a escribir un periódico STEAM en pasado simple" }
+        ]
+      }
+    ]
+  },
+
   /* Glosario local Español -> Inglés A1 (orientado a STEAM, manualidades, colegio y gustos de Miguel) */
   esToEnGlossary: [
     { es: "atrapasuenos", displayEs: "atrapasueños", en: "the dream catcher" },

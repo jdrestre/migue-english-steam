@@ -48,9 +48,9 @@
         <span>📰 2. Newspaper</span>
         <span class="tab-badge ready">Activa</span>
       </button>
-      <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-3">
+      <button type="button" class="station-tab" role="tab" aria-selected="false" data-station="station-3">
         <span>💬 3. 5 Preguntas</span>
-        <span class="tab-badge">Fase 3</span>
+        <span class="tab-badge ready">Activa</span>
       </button>
       <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-4">
         <span>🏆 4. Reto Martes</span>
@@ -677,19 +677,103 @@
       </div>
     </section>
 
+    <!-- ==================== ESTACIÓN 3 (ACTIVA EN FASE 3) ==================== -->
     <section id="station-3" class="station-panel" role="tabpanel">
-      <div class="card upcoming-card">
-        <div class="upcoming-icon">💬</div>
-        <h2>Estación 3: 5 Preguntas de Metacognición (Próxima Fase 3)</h2>
-        <p>Se construirá y publicará al aprobar la Estación 2.</p>
-        <div class="upcoming-preview-list">
-          <span>• Las 5 preguntas exactas de la Miss con "Palabra Llave" resaltada.</span>
-          <span>• Botones de opinión A1 + espacio libre en español/inglés con conector <code>because</code>.</span>
-          <span>• Audio en inglés para practicar comprensión y pronunciación.</span>
+      <!-- Bloque A: Calentamiento Neuroeducativo Why -> Because -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">💬 Estación 3: Entrevista de Metacognición (Las 5 Preguntas de la Miss)</h2>
+          <span class="role-tag role-parents">1. Guía Papás + Puente Why → Because (1 min)</span>
         </div>
-        <div>
-          <button type="button" class="btn btn-primary" data-goto-station="station-0">Volver a Estación 0</button>
+
+        <div class="studio-hero-bar">
+          <div class="studio-mic-badge" aria-hidden="true">🎙️</div>
+          <div>
+            <strong>Truco Maestro del Martes: Si escuchas o lees <code>Why?</code>, usa el puente verde <code>because</code></strong>
+            <p>
+              4 de las 5 preguntas de la Miss preguntan <strong>Why?</strong> (¿Por qué?). Calentemos 1 minuto con una entrevista relámpago
+              sobre el <strong>piano</strong>, <strong>Fortnite en Play</strong> y <strong>MrBeast</strong>.
+            </p>
+          </div>
+          <div class="why-bridge-visual" aria-hidden="true">
+            <span class="why-chip-q">Why?</span>
+            <span>━━▶</span>
+            <span class="why-bridge-pill">because</span>
+          </div>
         </div>
+
+        <div class="why-warmup-grid" id="st3-why-warmup-grid"></div>
+      </div>
+
+      <!-- Bloque B: Radar de Palabras Llave (Bento 3-sobre-2 sin huecos) -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">📡 Radar de Palabras Llave: ¿Qué está preguntando la Miss?</h3>
+          <span class="role-tag role-miguel" id="st3-radar-badge">0 de 5 preguntas detectadas</span>
+        </div>
+        <p class="helper-note">
+          Para que Miguel no se bloquee al ver una pregunta larga en inglés el martes, entrenemos su ojo para atrapar la
+          <strong>Palabra Llave</strong> de cada una de las 5 preguntas oficiales.
+        </p>
+        <div class="radar-bento-grid" id="st3-radar-grid"></div>
+      </div>
+
+      <!-- Bloque C: Cabina de Entrevista (Las 5 Preguntas Oficiales Paso a Paso) -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🎬 Cabina de Entrevista: Arma tus 5 Respuestas Reales para el Martes</h3>
+          <span class="role-tag role-both" id="st3-progress-badge">0 de 5 respondidas</span>
+        </div>
+        <p class="helper-note">
+          Trabaja <strong>una pregunta a la vez</strong> para cuidar la atención. Selecciona las piezas con la opinión real de Miguel
+          (puedes escribir tu propia idea en español/inglés) y desbloquea el audio en el Monitor ON AIR.
+        </p>
+
+        <!-- Selector de las 5 Preguntas -->
+        <div class="studio-deck-tabs" id="st3-deck-tabs" role="tablist" aria-label="Las 5 preguntas de metacognición"></div>
+
+        <!-- Escenario de la Pregunta Activa -->
+        <div class="interview-stage" id="st3-interview-stage"></div>
+      </div>
+
+      <!-- Bloque D: Consola de Simulacro Oral con la Miss + Preguntas de tu Periódico -->
+      <div class="card" id="st3-rehearsal-section" style="scroll-margin-top: 86px;">
+        <div class="card-header">
+          <h3 class="card-title">🎭 Simulacro con la Miss: Tus 5 Respuestas + Preguntas del Periódico</h3>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="toolbar-toggle-btn" id="st3-rehearsal-toggle-btn">
+              🙈 Modo Simulacro Oral: NO
+            </button>
+            <button type="button" class="btn btn-audio btn-sm" id="st3-speak-all-btn" style="min-height: 44px;" disabled>
+              🔒 Completa las 5 respuestas para ensayar todo
+            </button>
+          </div>
+        </div>
+        <p class="helper-note">
+          Cuando actives el <strong>Modo Simulacro Oral</strong>, ocultaremos las respuestas de Miguel para que escuche la pregunta
+          en inglés, responda en voz alta y toque cada tarjeta para comprobar si la dijo bien.
+        </p>
+
+        <div class="rehearsal-console-bar" id="st3-rehearsal-console">
+          <span id="st3-rehearsal-counter"><span class="live-rec-dot"></span>EN VIVO • Simulacro Oral: 0 de 5 comprobadas</span>
+          <button type="button" class="btn btn-secondary btn-sm" id="st3-rehearsal-reset-btn" style="min-height: 44px;">
+            🔄 Ocultar todas de nuevo
+          </button>
+        </div>
+
+        <div class="qa-summary-grid" id="st3-summary-grid"></div>
+
+        <!-- Bonus dinámico conectado con Estación 2 -->
+        <details class="neuro-details" style="margin-top: 16px;">
+          <summary>
+            <span>🗞️ Bonus: 3 Preguntas de Información sobre TU Periódico (Estación 2) — por si la Miss pregunta</span>
+            <span>▼ Ver preguntas</span>
+          </summary>
+          <p class="helper-note" style="margin: 10px 0 4px;">
+            Estas respuestas se toman automáticamente del periódico que armó Miguel en la <strong>Estación 2</strong>.
+          </p>
+          <div class="bonus-info-grid" id="st3-bonus-info-grid"></div>
+        </details>
       </div>
     </section>
 

@@ -240,6 +240,7 @@
         renderBank();
         renderStation1Builder();
         renderStation2Newspaper();
+        renderStation3All();
         showToast("Elemento quitado del banco.");
       });
     });
@@ -320,6 +321,7 @@
         renderBank();
         renderStation1Builder();
         renderStation2Newspaper();
+        renderStation3All();
         form.reset();
         if (inputEn) inputEn.dataset.userEdited = "false";
         showToast(`Agregado al banco: ${enVal}`);
@@ -1396,7 +1398,9 @@
       checks,
       completedCount,
       isDuplicateStep,
+      whoSentencePlain,
       whoSentenceHtml,
+      whereSentencePlain,
       whereSentenceHtml,
       storyHtmlParts,
       whatPlain,
@@ -1911,6 +1915,8 @@
       speakWhatBtn.disabled = !built.whatPlain;
       speakWhatBtn.dataset.whatText = built.whatPlain;
     }
+
+    renderStation3BonusInfo();
   }
 
   function syncStation2InputsFromState() {
@@ -1954,6 +1960,7 @@
         state.newspaper[key] = el.value;
         window.AppStorage.save(state);
         renderStation2Newspaper();
+        renderStation3BonusInfo();
       });
     };
 
@@ -2064,6 +2071,7 @@
         window.AppStorage.save(state);
         syncStation2InputsFromState();
         renderStation2Newspaper();
+        renderStation3BonusInfo();
         showToast("⚡ Borrador guía cargado. ¡Personalízalo con Miguel!");
       });
     }
@@ -2094,7 +2102,1149 @@
         window.AppStorage.save(state);
         syncStation2InputsFromState();
         renderStation2Newspaper();
+        renderStation3BonusInfo();
         showToast("Periódico limpiado para empezar desde cero.");
+      });
+    }
+  }
+
+  /* ==================== ESTACIÓN 3: METACOGNITION & INFORMATION Q&A (R2 AWWWARDS) ==================== */
+  let st3ActiveQIdx = 0;
+  let st3RehearsalMode = false;
+  let st3RevealedWarmups = new Set();
+  let st3RevealedSummary = new Set();
+
+  function formatMakingTask(item) {
+    if (!item) return "";
+    if (item.id === "steam-maze") return "making the maze";
+    if (item.id === "steam-dream-catcher") return "making the dream catcher";
+    const base = item.en.startsWith("The ") ? "the " + item.en.slice(4) : item.en;
+    return `making ${base}`;
+  }
+
+  function formatMakingTaskEs(makingVal) {
+    if (!makingVal) return "";
+    if (makingVal === "making the maze") return "hacer el laberinto";
+    if (makingVal === "making the dream catcher") return "hacer el atrapasueños";
+    const items = getAllBankItems().filter((i) => i.category === "steam");
+    const match = items.find((i) => formatMakingTask(i) === makingVal);
+    return match ? match.es.toLowerCase() : makingVal;
+  }
+
+  function capitalizeFirst(str) {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function cleanCustomClause(raw) {
+    return (raw || "").trim().replace(/^because\s+/i, "").replace(/\.+$/, "");
+  }
+
+  function findReasonEs(qDef, mainKey, reasonEn) {
+    if (!qDef || !reasonEn) return "";
+    let pool = qDef.reasons || [];
+    if (qDef.id === "q2") {
+      pool = (qDef.reasonsByMain && qDef.reasonsByMain[mainKey]) || [];
+    } else if (qDef.id === "q4") {
+      pool = (qDef.reasonsStandard || []).concat(qDef.reasonsPositive || []);
+    }
+    const found = pool.find((r) => r.en === reasonEn);
+    return found ? found.es : reasonEn;
+  }
+
+  function buildMetaAnswer(qId) {
+    const s3 = window.APP_DATA.station3Data;
+    const m = state.metacognition && state.metacognition[qId];
+    if (!s3 || !m) return { complete: false, plainEn: "", html: "", esMeaning: "", nextStepMsg: "" };
+
+    const qDef = s3.officialQuestions.find((q) => q.id === qId);
+    if (!qDef) return { complete: false, plainEn: "", html: "", esMeaning: "", nextStepMsg: "" };
+
+    const customReason = cleanCustomClause(m.customEn);
+    const activeReason = customReason || m.reason || "";
+    const reasonEs = customReason
+      ? (m.customEs && m.customEs.trim() ? m.customEs.trim().replace(/^porque\s+/i, "").replace(/\.+$/, "") : customReason)
+      : findReasonEs(qDef, m.main, m.reason);
+
+    if (qId === "q1") {
+      const mainReady = Boolean(m.main);
+      const complete = Boolean(mainReady && m.hasBecause && activeReason);
+      const plainEn = complete ? `My favorite task was ${m.main} because ${activeReason}.` : "";
+      const html = complete
+        ? `<div class="colored-sentence">
+            <span class="tok tok-blue">My favorite task</span>
+            <span class="tok tok-orange">was ${escapeHtml(m.main)}</span>
+            <span class="tok tok-green">because</span>
+            <span class="tok tok-purple">${escapeHtml(activeReason)}.</span>
+          </div>`
+        : "";
+      const esMeaning = complete
+        ? `Mi tarea favorita fue ${formatMakingTaskEs(m.main)} porque ${reasonEs}.`
+        : "";
+      let nextStepMsg = "🧩 Paso 1: Elige cuál fue tu tarea favorita (Bloque Azul).";
+      if (mainReady && !m.hasBecause) nextStepMsg = "⏳ Paso 2: Activa el puente verde '+ because (porque)'.";
+      else if (mainReady && m.hasBecause && !activeReason) nextStepMsg = "⏳ Paso 3: Elige o escribe tu razón en el Bloque Morado.";
+      return { complete, plainEn, html, esMeaning, nextStepMsg };
+    }
+
+    if (qId === "q2") {
+      const mainOpt = qDef.mainOptions.find((o) => o.id === m.main);
+      const mainReady = Boolean(mainOpt);
+      const complete = Boolean(mainReady && m.hasBecause && activeReason);
+      const plainEn = complete ? `${mainOpt.en}, because ${activeReason}.` : "";
+      const html = complete
+        ? `<div class="colored-sentence">
+            <span class="tok tok-blue">${escapeHtml(mainOpt.en)},</span>
+            <span class="tok tok-green">because</span>
+            <span class="tok tok-purple">${escapeHtml(activeReason)}.</span>
+          </div>`
+        : "";
+      const esLead = mainOpt ? (mainOpt.id === "yes" ? "Sí lo fue" : "No lo fue") : "";
+      const esMeaning = complete ? `${esLead}, porque ${reasonEs}.` : "";
+      let nextStepMsg = "🧩 Paso 1: Elige 'Yes, it was' o 'No, it wasn't' (Bloque Azul).";
+      if (mainReady && !m.hasBecause) nextStepMsg = "⏳ Paso 2: Activa el puente verde '+ because (porque)'.";
+      else if (mainReady && m.hasBecause && !activeReason) nextStepMsg = "⏳ Paso 3: Elige o escribe por qué en el Bloque Morado.";
+      return { complete, plainEn, html, esMeaning, nextStepMsg };
+    }
+
+    if (qId === "q3") {
+      const mainReady = Boolean(m.main);
+      const complete = Boolean(mainReady && m.hasBecause && activeReason);
+      const mainCap = capitalizeFirst(m.main);
+      const plainEn = complete ? `${mainCap} was easier for me because ${activeReason}.` : "";
+      const html = complete
+        ? `<div class="colored-sentence">
+            <span class="tok tok-blue">${escapeHtml(mainCap)}</span>
+            <span class="tok tok-orange">was easier for me</span>
+            <span class="tok tok-green">because</span>
+            <span class="tok tok-purple">${escapeHtml(activeReason)}.</span>
+          </div>`
+        : "";
+      const esMeaning = complete
+        ? `${capitalizeFirst(formatMakingTaskEs(m.main))} fue más fácil para mí porque ${reasonEs}.`
+        : "";
+      let nextStepMsg = "🧩 Paso 1: Elige qué tarea fue más fácil para ti (Bloque Azul).";
+      if (mainReady && !m.hasBecause) nextStepMsg = "⏳ Paso 2: Activa el puente verde '+ because (porque)'.";
+      else if (mainReady && m.hasBecause && !activeReason) nextStepMsg = "⏳ Paso 3: Elige o escribe por qué fue más fácil (Bloque Morado).";
+      return { complete, plainEn, html, esMeaning, nextStepMsg };
+    }
+
+    if (qId === "q4") {
+      const mainOpt = qDef.mainOptions.find((o) => o.id === m.main);
+      const mainReady = Boolean(mainOpt);
+      const complete = Boolean(mainReady && m.hasBecause && activeReason);
+      let plainEn = "";
+      let html = "";
+      let esMeaning = "";
+      if (complete) {
+        if (mainOpt.positive) {
+          plainEn = `Nothing! Everything was fun because ${activeReason}.`;
+          html = `<div class="colored-sentence">
+            <span class="tok tok-blue">Nothing! Everything</span>
+            <span class="tok tok-orange">was fun</span>
+            <span class="tok tok-green">because</span>
+            <span class="tok tok-purple">${escapeHtml(activeReason)}.</span>
+          </div>`;
+          esMeaning = `¡Nada! Todo fue divertido porque ${reasonEs}.`;
+        } else {
+          plainEn = `The most boring part was ${mainOpt.en} because ${activeReason}.`;
+          html = `<div class="colored-sentence">
+            <span class="tok tok-blue">The most boring part</span>
+            <span class="tok tok-orange">was ${escapeHtml(mainOpt.en)}</span>
+            <span class="tok tok-green">because</span>
+            <span class="tok tok-purple">${escapeHtml(activeReason)}.</span>
+          </div>`;
+          esMeaning = `La parte más aburrida fue ${mainOpt.es} porque ${reasonEs}.`;
+        }
+      }
+      let nextStepMsg = "🧩 Paso 1: Elige qué parte fue más lenta/aburrida (o 'Nothing! Everything was fun').";
+      if (mainReady && !m.hasBecause) nextStepMsg = "⏳ Paso 2: Activa el puente verde '+ because (porque)'.";
+      else if (mainReady && m.hasBecause && !activeReason) nextStepMsg = "⏳ Paso 3: Elige o escribe tu razón en el Bloque Morado.";
+      return { complete, plainEn, html, esMeaning, nextStepMsg };
+    }
+
+    /* q5: What did you learn from this STEAM? (Max 2 ideas; 2 crisp rhythmic sentences when 2 selected!) */
+    const itemsEn = [];
+    const itemsEs = [];
+    (m.selectedIds || []).forEach((id) => {
+      const f = qDef.learnOptions.find((o) => o.id === id);
+      if (f) {
+        itemsEn.push(f.en);
+        itemsEs.push(f.es);
+      }
+    });
+    const customLearn = (m.customEn || "").trim().replace(/^I learned\s+/i, "").replace(/\.+$/, "");
+    if (customLearn) {
+      if (itemsEn.length >= 2) {
+        itemsEn.pop();
+        itemsEs.pop();
+      }
+      itemsEn.push(customLearn);
+      itemsEs.push(m.customEs && m.customEs.trim() ? m.customEs.trim().replace(/\.+$/, "") : customLearn);
+    }
+
+    const complete = Boolean(m.hasLearnedVerb && itemsEn.length > 0);
+    let plainEn = "";
+    let html = "";
+    let esMeaning = "";
+    if (complete) {
+      if (itemsEn.length === 1) {
+        plainEn = `I learned ${itemsEn[0]}.`;
+        html = `<div class="colored-sentence">
+          <span class="tok tok-blue">I</span>
+          <span class="tok tok-orange">learned</span>
+          <span class="tok tok-purple">${escapeHtml(itemsEn[0])}.</span>
+        </div>`;
+        esMeaning = `Aprendí ${itemsEs[0]}.`;
+      } else {
+        plainEn = `I learned ${itemsEn[0]}. I also learned ${itemsEn[1]}.`;
+        html = `<div class="colored-sentence">
+          <span class="tok tok-blue">I</span>
+          <span class="tok tok-orange">learned</span>
+          <span class="tok tok-purple">${escapeHtml(itemsEn[0])}.</span>
+          <span class="tok tok-blue">I</span>
+          <span class="tok tok-green">also</span>
+          <span class="tok tok-orange">learned</span>
+          <span class="tok tok-purple">${escapeHtml(itemsEn[1])}.</span>
+        </div>`;
+        esMeaning = `Aprendí ${itemsEs[0]}. También aprendí ${itemsEs[1]}.`;
+      }
+    }
+    let nextStepMsg = "🧩 Paso 1: Activa el bloque naranja 'I learned (Aprendí)' para recordar el Past Simple.";
+    if (m.hasLearnedVerb && itemsEn.length === 0) {
+      nextStepMsg = "⏳ Paso 2: Selecciona 1 o 2 aprendizajes reales (o escribe uno propio) en el Bloque Morado.";
+    }
+    return { complete, plainEn, html, esMeaning, nextStepMsg };
+  }
+
+  function renderStation3Warmups() {
+    const grid = document.getElementById("st3-why-warmup-grid");
+    if (!grid) return;
+    const list = (window.APP_DATA.station3Data && window.APP_DATA.station3Data.whyWarmups) || [];
+
+    grid.innerHTML = list
+      .map((w) => {
+        const revealed = st3RevealedWarmups.has(w.id);
+        return `
+          <article class="why-warmup-card">
+            <div>
+              <span class="warmup-badge">${w.icon} ${escapeHtml(w.topic)}</span>
+              <p class="why-q-text">${escapeHtml(w.q)}</p>
+              <p class="warmup-es">${escapeHtml(w.qEs)}</p>
+              ${
+                revealed
+                  ? `<div class="why-answer-reveal">
+                      <div class="colored-sentence" style="margin-bottom: 6px;">
+                        <span class="tok tok-blue">${escapeHtml(w.blue)}</span>
+                        <span class="tok tok-green">${escapeHtml(w.green)}</span>
+                        <span class="tok tok-purple">${escapeHtml(w.purple)}.</span>
+                      </div>
+                      <p class="warmup-es">${escapeHtml(w.fullEs)}</p>
+                    </div>`
+                  : ""
+              }
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <button type="button" class="btn btn-secondary btn-sm" style="min-height: 44px;" data-wu-toggle="${w.id}">
+                ${revealed ? "🙈 Ocultar puente" : "💡 Ver puente because"}
+              </button>
+              <button type="button" class="btn btn-audio btn-sm" style="min-height: 44px;" data-wu-speak="${w.id}">
+                🔊 Escuchar
+              </button>
+            </div>
+          </article>`;
+      })
+      .join("");
+
+    grid.querySelectorAll("[data-wu-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-wu-toggle");
+        if (st3RevealedWarmups.has(id)) st3RevealedWarmups.delete(id);
+        else st3RevealedWarmups.add(id);
+        renderStation3Warmups();
+      });
+    });
+
+    grid.querySelectorAll("[data-wu-speak]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-wu-speak");
+        const w = list.find((item) => item.id === id);
+        if (!w) return;
+        const text = st3RevealedWarmups.has(id) ? `${w.q} ${w.fullEn}` : w.q;
+        window.AppSpeech.speak(text, showToast);
+      });
+    });
+  }
+
+  function renderStation3Radar() {
+    const grid = document.getElementById("st3-radar-grid");
+    const badge = document.getElementById("st3-radar-badge");
+    if (!grid) return;
+
+    const items = (window.APP_DATA.station3Data && window.APP_DATA.station3Data.keywordRadar) || [];
+    const solved = state.station3RadarSolved || [];
+
+    if (badge) {
+      badge.textContent =
+        solved.length === items.length
+          ? `🏆 ¡${solved.length} de ${items.length} preguntas detectadas!`
+          : `${solved.length} de ${items.length} preguntas detectadas`;
+    }
+
+    grid.innerHTML = items
+      .map((item) => {
+        const isSolved = solved.includes(item.id);
+        const highlightedQ = escapeHtml(item.questionEn).replace(
+          escapeHtml(item.keyword),
+          `<mark class="kw-highlight">${escapeHtml(item.keyword)}</mark>`
+        );
+
+        const optsHtml = item.options
+          .map((opt) => {
+            const cls = isSolved && opt.key === item.correctKey ? "is-right" : "";
+            return `
+              <button type="button" class="quiz-opt-btn ${cls}" data-kr-id="${item.id}" data-kr-key="${opt.key}" ${isSolved ? "disabled" : ""}>
+                ${isSolved && opt.key === item.correctKey ? "✅ " : ""}${escapeHtml(opt.label)}
+              </button>`;
+          })
+          .join("");
+
+        return `
+          <article class="quiz-card ${isSolved ? "is-solved" : ""}">
+            <div style="font-size: 0.94rem; font-weight: 800; line-height: 1.45; color: var(--text);">
+              ${highlightedQ}
+            </div>
+            <div class="quiz-options">${optsHtml}</div>
+            <div class="quiz-feedback ${isSolved ? "ok" : ""}" id="kr-fb-${item.id}">
+              ${isSolved ? escapeHtml(item.tipOk) : "¿Qué pregunta la Miss aquí?"}
+            </div>
+            <button type="button" class="btn btn-audio btn-sm" style="min-height: 44px;" data-kr-speak="${escapeHtml(item.questionEn)}">
+              🔊 Escuchar pregunta
+            </button>
+          </article>`;
+      })
+      .join("");
+
+    grid.querySelectorAll("[data-kr-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-kr-id");
+        const chosen = btn.getAttribute("data-kr-key");
+        const item = items.find((i) => i.id === id);
+        if (!item) return;
+
+        if (chosen === item.correctKey) {
+          if (!state.station3RadarSolved.includes(id)) {
+            state.station3RadarSolved.push(id);
+            window.AppStorage.save(state);
+          }
+          renderStation3Radar();
+          window.AppSpeech.speak(item.questionEn, showToast);
+        } else {
+          btn.classList.add("is-wrong");
+          const fb = document.getElementById(`kr-fb-${id}`);
+          if (fb) {
+            fb.className = "quiz-feedback retry";
+            fb.textContent = item.tipRetry;
+          }
+        }
+      });
+    });
+
+    grid.querySelectorAll("[data-kr-speak]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        window.AppSpeech.speak(btn.getAttribute("data-kr-speak"), showToast);
+      });
+    });
+  }
+
+  function renderStation3Stage() {
+    const s3 = window.APP_DATA.station3Data;
+    const tabsWrap = document.getElementById("st3-deck-tabs");
+    const stageEl = document.getElementById("st3-interview-stage");
+    const progressBadge = document.getElementById("st3-progress-badge");
+    if (!s3 || !tabsWrap || !stageEl) return;
+
+    /* Limpiar huérfanos si se borró una tarea STEAM personalizada en Estación 0 */
+    const steamItems = getAllBankItems().filter((i) => i.category === "steam");
+    const validMakingTasks = steamItems.map((it) => formatMakingTask(it));
+    ["q1", "q3"].forEach((qk) => {
+      if (state.metacognition[qk].main && !validMakingTasks.includes(state.metacognition[qk].main)) {
+        state.metacognition[qk].main = "";
+      }
+    });
+
+    const questions = s3.officialQuestions;
+    const answersById = {};
+    let doneCount = 0;
+    questions.forEach((q) => {
+      answersById[q.id] = buildMetaAnswer(q.id);
+      if (answersById[q.id].complete) doneCount += 1;
+    });
+
+    if (progressBadge) {
+      progressBadge.textContent =
+        doneCount === questions.length
+          ? `🏆 ¡${doneCount} de ${questions.length} respondidas!`
+          : `${doneCount} de ${questions.length} respondidas`;
+    }
+
+    /* 1. Pestañas de las 5 preguntas */
+    tabsWrap.innerHTML = questions
+      .map((q, idx) => {
+        const done = answersById[q.id].complete;
+        const active = idx === st3ActiveQIdx;
+        return `
+          <button type="button" class="studio-q-tab ${active ? "is-active" : ""} ${done ? "is-done" : ""}" data-st3-tab="${idx}" role="tab" aria-selected="${active ? "true" : "false"}">
+            <span class="q-tab-state">${done ? "✅ Lista" : "Pendiente"}</span>
+            <span>${escapeHtml(q.shortLabel)}</span>
+          </button>`;
+      })
+      .join("");
+
+    tabsWrap.querySelectorAll("[data-st3-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        st3ActiveQIdx = Number(btn.getAttribute("data-st3-tab"));
+        renderStation3Stage();
+      });
+    });
+
+    /* 2. Renderizar la Pregunta Activa */
+    const q = questions[st3ActiveQIdx] || questions[0];
+    const m = state.metacognition[q.id];
+    const built = answersById[q.id];
+    const isLastQ = st3ActiveQIdx === questions.length - 1;
+
+    /* Verificar coherencia suave entre Q2 y Q3 (sin bloquear) */
+    let consistencyTip = "";
+    if (q.id === "q3" && state.metacognition.q2.main && m.main) {
+      if (state.metacognition.q2.main === "yes" && m.main === "making the maze") {
+        consistencyTip = "💡 Nota para papás: En la Pregunta 2 Miguel dijo que el laberinto fue más difícil. Verifiquen si aquí prefiere elegir 'making the dream catcher' como la más fácil para que ambas respuestas coincidan el martes.";
+      } else if (state.metacognition.q2.main === "no" && m.main === "making the dream catcher") {
+        consistencyTip = "💡 Nota para papás: En la Pregunta 2 Miguel dijo que el laberinto NO fue más difícil. Verifiquen si aquí prefiere elegir 'making the maze' como la más fácil para mantener coherencia el martes.";
+      }
+    }
+
+    /* Construir controles LEGO según la pregunta (1:1 LEGO Color Contract!) */
+    let step1Html = "";
+    let step2BridgeHtml = "";
+    let step3ReasonHtml = "";
+
+    if (q.id === "q1" || q.id === "q3") {
+      const title1 = q.id === "q1" ? "1. 🟦 Bloque Azul: Elige tu tarea favorita en STEAM" : "1. 🟦 Bloque Azul: Elige la tarea que fue más fácil para ti";
+      const taskBtns = steamItems
+        .map((it) => {
+          const val = formatMakingTask(it);
+          const labelEn = q.id === "q3" ? capitalizeFirst(val) : val;
+          const esText = it.id === "steam-maze" ? "hacer el laberinto" : it.id === "steam-dream-catcher" ? "hacer el atrapasueños" : it.es;
+          const sel = m.main === val;
+          return `
+            <button type="button" class="lego-piece lego-piece-blue ${sel ? "is-selected" : ""}" data-m-main="${escapeHtml(val)}">
+              <span>${sel ? "✓ " : ""}${escapeHtml(labelEn)}</span>
+              <span class="es-mini">(${escapeHtml(esText)})</span>
+            </button>`;
+        })
+        .join("");
+      step1Html = `
+        <div class="comp-step-block">
+          <div class="comp-step-title"><span style="color: var(--lego-blue);">${title1}</span></div>
+          <div class="chip-row" style="margin-bottom: 0;">${taskBtns}</div>
+          ${consistencyTip ? `<div class="consistency-tip-box">${escapeHtml(consistencyTip)}</div>` : ""}
+        </div>`;
+    } else if (q.id === "q2") {
+      const yesNoBtns = q.mainOptions
+        .map((opt) => {
+          const sel = m.main === opt.id;
+          return `
+            <button type="button" class="editorial-opt-btn editorial-opt-blue ${sel ? "is-selected" : ""}" data-m-main="${opt.id}">
+              <span class="opt-en">${sel ? "✓ " : ""}${escapeHtml(opt.en)}</span>
+              <span class="opt-es">${escapeHtml(opt.es)}</span>
+            </button>`;
+        })
+        .join("");
+      step1Html = `
+        <div class="comp-step-block">
+          <div class="comp-step-title"><span style="color: var(--lego-blue);">1. 🟦 Bloque Azul: ¿Sí o No? (Opinión real de Miguel)</span></div>
+          <div class="editorial-option-list" style="margin-bottom: 0;">${yesNoBtns}</div>
+        </div>`;
+    } else if (q.id === "q4") {
+      const partBtns = q.mainOptions
+        .map((opt) => {
+          const sel = m.main === opt.id;
+          return `
+            <button type="button" class="editorial-opt-btn editorial-opt-blue ${sel ? "is-selected" : ""}" data-m-main="${opt.id}">
+              <span class="opt-en">${sel ? "✓ " : ""}${escapeHtml(opt.en)}</span>
+              <span class="opt-es">${escapeHtml(opt.es)}</span>
+            </button>`;
+        })
+        .join("");
+      step1Html = `
+        <div class="comp-step-block">
+          <div class="comp-step-title"><span style="color: var(--lego-blue);">1. 🟦 Bloque Azul: ¿Cuál fue la parte más lenta o aburrida?</span></div>
+          <div class="editorial-option-list" style="margin-bottom: 0;">${partBtns}</div>
+        </div>`;
+    } else if (q.id === "q5") {
+      step1Html = `
+        <div class="comp-step-block">
+          <div class="comp-step-title"><span style="color: var(--lego-orange);">1. 🟧 Bloque Naranja: Activa el verbo en Pasado Simple</span></div>
+          <p class="helper-note" style="margin-bottom: 8px;">La pregunta usa <code>did you learn</code>, por eso respondemos con el verbo en pasado <strong>I learned</strong>.</p>
+          <button type="button" class="lego-piece lego-piece-orange ${m.hasLearnedVerb ? "is-selected" : ""}" id="st3-learned-btn">
+            <span>${m.hasLearnedVerb ? "✓ I learned" : "+ I learned"}</span>
+            <span class="es-mini">(Yo aprendí)</span>
+          </button>
+        </div>`;
+    }
+
+    /* Paso 2: Puente verde because (para Q1-Q4) */
+    if (q.needsBecause) {
+      step2BridgeHtml = `
+        <div class="comp-step-block">
+          <div class="comp-step-title"><span style="color: var(--lego-green);">2. 🟩 Bloque Verde: Conector obligatorio para responder Why?</span></div>
+          <button type="button" class="lego-piece lego-piece-green ${m.hasBecause ? "is-selected" : ""}" id="st3-because-btn">
+            <span>${m.hasBecause ? "✓ because" : "+ because"}</span>
+            <span class="es-mini">(porque — obligatorio)</span>
+          </button>
+        </div>`;
+    }
+
+    /* Paso 3: Bloque Morado (1:1 .editorial-opt-purple!) */
+    if (q.id === "q5") {
+      const learnBtns = q.learnOptions
+        .map((opt) => {
+          const sel = (m.selectedIds || []).includes(opt.id);
+          return `
+            <button type="button" class="editorial-opt-btn editorial-opt-purple ${sel ? "is-selected" : ""}" data-m-learn="${opt.id}">
+              <span class="opt-en">${sel ? "✓ " : "+ "}${escapeHtml(opt.en)}</span>
+              <span class="opt-es">${escapeHtml(opt.es)}</span>
+            </button>`;
+        })
+        .join("");
+
+      step3ReasonHtml = `
+        <div class="comp-step-block" style="margin-bottom: 0;">
+          <div class="comp-step-title"><span style="color: var(--lego-purple);">2. 🟪 Bloque Morado: Elige 1 o 2 cosas que aprendiste</span></div>
+          <div class="editorial-option-list">${learnBtns}</div>
+          <details class="neuro-details" ${m.customEs || m.customEn ? "open" : ""}>
+            <summary>
+              <span>✏️ ¿Agregar otro aprendizaje propio de Miguel? (Español ↔ Inglés)</span>
+              <span>▼ Abrir</span>
+            </summary>
+            <div class="custom-note-box">
+              <div class="field" style="margin-bottom: 8px;">
+                <label for="st3-custom-es">Idea de Miguel en Español (detecta palabras A1):</label>
+                <input type="text" id="st3-custom-es" maxlength="90" value="${escapeHtml(m.customEs || "")}" placeholder="Ej. paciencia y usar cartón">
+              </div>
+              <div class="chip-row" id="st3-custom-chips"></div>
+              <div class="field">
+                <label for="st3-custom-en">Complemento en Inglés A1 (máximo 2 ideas en total):</label>
+                <input type="text" id="st3-custom-en" maxlength="90" value="${escapeHtml(m.customEn || "")}" placeholder="Ej. to use cardboard with patience">
+              </div>
+            </div>
+          </details>
+        </div>`;
+    } else {
+      let reasonsList = q.reasons || [];
+      if (q.id === "q2") {
+        reasonsList = m.main ? q.reasonsByMain[m.main] || [] : [];
+      } else if (q.id === "q4") {
+        const chosenPart = q.mainOptions.find((o) => o.id === m.main);
+        reasonsList = chosenPart ? (chosenPart.positive ? q.reasonsPositive : q.reasonsStandard) : [];
+      }
+
+      const reasonsContent =
+        reasonsList.length > 0
+          ? `<div class="editorial-option-list">
+              ${reasonsList
+                .map((r) => {
+                  const sel = m.reason === r.en && !cleanCustomClause(m.customEn);
+                  return `
+                    <button type="button" class="editorial-opt-btn editorial-opt-purple ${sel ? "is-selected" : ""}" data-m-reason="${escapeHtml(r.en)}">
+                      <span class="opt-en">${sel ? "✓ " : ""}${escapeHtml(r.en)}</span>
+                      <span class="opt-es">${escapeHtml(r.es)}</span>
+                    </button>`;
+                })
+                .join("")}
+            </div>`
+          : `<p class="helper-note" style="margin: 0 0 10px;">Primero elige el <strong>Bloque Azul (Paso 1)</strong> para ver razones coherentes con la opinión de Miguel.</p>`;
+
+      step3ReasonHtml = `
+        <div class="comp-step-block" style="margin-bottom: 0;">
+          <div class="comp-step-title"><span style="color: var(--lego-purple);">3. 🟪 Bloque Morado: Elige la razón de Miguel (o escribe la tuya)</span></div>
+          ${reasonsContent}
+          <details class="neuro-details" ${m.customEs || m.customEn ? "open" : ""}>
+            <summary>
+              <span>✏️ ¿Miguel quiere dar su propia razón en Español / Inglés?</span>
+              <span>▼ Abrir</span>
+            </summary>
+            <div class="custom-note-box">
+              <div class="field" style="margin-bottom: 8px;">
+                <label for="st3-custom-es">Razón de Miguel en Español (sugiere chips A1):</label>
+                <input type="text" id="st3-custom-es" maxlength="90" value="${escapeHtml(m.customEs || "")}" placeholder="Ej. fue divertido pintar con colores">
+              </div>
+              <div class="chip-row" id="st3-custom-chips"></div>
+              <div class="field">
+                <label for="st3-custom-en">Razón en Inglés A1 (va después de <code>because</code>):</label>
+                <input type="text" id="st3-custom-en" maxlength="90" value="${escapeHtml(m.customEn || "")}" placeholder="Ej. it was fun to paint with colors">
+              </div>
+            </div>
+          </details>
+        </div>`;
+    }
+
+    const rightNavBtnHtml = isLastQ
+      ? `<button type="button" class="btn btn-audio is-unlocked" id="st3-goto-rehearsal-btn">🎭 Ir al Simulacro Oral ↓</button>`
+      : `<button type="button" class="btn btn-primary" id="st3-next-btn">Siguiente pregunta →</button>`;
+
+    stageEl.innerHTML = `
+      <div class="miss-prompt-banner">
+        <div>
+          <div class="miss-prompt-kicker">Pregunta Oficial ${st3ActiveQIdx + 1} de 5 — Correo de la Miss</div>
+          <h4 class="miss-prompt-en">${q.questionHtml}</h4>
+          <p class="miss-prompt-es">${escapeHtml(q.questionEs)}</p>
+        </div>
+        <button type="button" class="btn btn-audio" id="st3-speak-q-btn">
+          🔊 Escuchar Pregunta
+        </button>
+      </div>
+
+      <div class="parent-coach-strip">${escapeHtml(q.parentTip)}</div>
+
+      <div class="qa-stage-grid">
+        <div>
+          ${step1Html}
+          ${step2BridgeHtml}
+          ${step3ReasonHtml}
+        </div>
+
+        <!-- Monitor de Estudio ON AIR con foto de Miguel y traducción de verificación -->
+        <div>
+          <div class="studio-monitor ${built.complete ? "is-correct" : ""}" id="st3-studio-monitor">
+            <div class="studio-monitor-bar">
+              <div class="studio-guest-chip">
+                <img src="assets/images/miguel-retrato.jpg" alt="Miguel Ángel en entrevista" class="studio-guest-avatar">
+                <div class="studio-guest-meta">
+                  <strong>Miguel Ángel</strong>
+                  <span>Invitado • 3° Primaria</span>
+                </div>
+              </div>
+              <div class="studio-onair-wrap">
+                <div class="eq-bars" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <span class="onair-pill" id="st3-onair-pill">
+                  <span class="onair-dot"></span>
+                  <span id="st3-onair-text">${built.complete ? "ON AIR" : "STANDBY"}</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="studio-monitor-body">
+              <div class="validation-badge ${built.complete ? "status-correct" : "status-progress"}" id="st3-stage-badge">
+                ${built.complete ? "✅ ¡Respuesta lista al aire! Ya puedes escuchar tu diálogo en inglés." : escapeHtml(built.nextStepMsg)}
+              </div>
+              <div class="preview-output" id="st3-stage-output">
+                ${built.complete ? built.html : `<span class="assembly-placeholder">Aquí aparecerá la respuesta armada de Miguel por colores LEGO...</span>`}
+              </div>
+              <div class="spanish-meaning-box" id="st3-stage-es-meaning">
+                ${built.complete ? `<strong>Tu respuesta en español:</strong> ${escapeHtml(built.esMeaning)}` : "Traducción de verificación: aparecerá cuando completes los bloques."}
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button type="button" class="btn btn-audio ${built.complete ? "is-unlocked" : ""}" id="st3-speak-ans-btn" ${built.complete ? "" : "disabled"}>
+                  ${built.complete ? "🔊 Escuchar Respuesta" : "🔒 Completa los bloques para escuchar"}
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" style="min-height: 44px;" id="st3-speak-dialog-btn" ${built.complete ? "" : "disabled"}>
+                  🎙️ Pregunta + Respuesta
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" style="min-height: 44px;" id="st3-clear-q-btn">
+                  🔄 Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="qa-nav-footer">
+        <button type="button" class="btn btn-secondary" id="st3-prev-btn" ${st3ActiveQIdx === 0 ? "disabled" : ""}>
+          ← Pregunta anterior
+        </button>
+        <span class="helper-note" style="margin: 0;">Pregunta ${st3ActiveQIdx + 1} de ${questions.length}</span>
+        ${rightNavBtnHtml}
+      </div>`;
+
+    /* Enlazar eventos con lectura fresca de estado (P0-1 fix: cero closures desactualizados!) */
+    const speakQBtn = document.getElementById("st3-speak-q-btn");
+    if (speakQBtn) {
+      speakQBtn.addEventListener("click", () => window.AppSpeech.speak(q.questionEn, showToast));
+    }
+
+    const speakAnsBtn = document.getElementById("st3-speak-ans-btn");
+    if (speakAnsBtn) {
+      speakAnsBtn.addEventListener("click", () => {
+        const fresh = buildMetaAnswer(q.id);
+        if (fresh.complete) window.AppSpeech.speak(fresh.plainEn, showToast);
+      });
+    }
+
+    const speakDialogBtn = document.getElementById("st3-speak-dialog-btn");
+    if (speakDialogBtn) {
+      speakDialogBtn.addEventListener("click", () => {
+        const fresh = buildMetaAnswer(q.id);
+        if (fresh.complete) window.AppSpeech.speak(`${q.questionEn} ${fresh.plainEn}`, showToast);
+      });
+    }
+
+    stageEl.querySelectorAll("[data-m-main]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = btn.getAttribute("data-m-main");
+        const prev = m.main;
+        m.main = prev === val ? "" : val;
+        if ((q.id === "q2" || q.id === "q4") && prev !== m.main) {
+          m.reason = "";
+        }
+        window.AppStorage.save(state);
+        renderStation3Stage();
+        renderStation3Summary();
+      });
+    });
+
+    const becauseBtn = document.getElementById("st3-because-btn");
+    if (becauseBtn) {
+      becauseBtn.addEventListener("click", () => {
+        m.hasBecause = !m.hasBecause;
+        window.AppStorage.save(state);
+        renderStation3Stage();
+        renderStation3Summary();
+      });
+    }
+
+    const learnedBtn = document.getElementById("st3-learned-btn");
+    if (learnedBtn) {
+      learnedBtn.addEventListener("click", () => {
+        m.hasLearnedVerb = !m.hasLearnedVerb;
+        window.AppStorage.save(state);
+        renderStation3Stage();
+        renderStation3Summary();
+      });
+    }
+
+    stageEl.querySelectorAll("[data-m-reason]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = btn.getAttribute("data-m-reason");
+        m.reason = m.reason === val ? "" : val;
+        m.customEn = "";
+        m.customEs = "";
+        window.AppStorage.save(state);
+        renderStation3Stage();
+        renderStation3Summary();
+      });
+    });
+
+    stageEl.querySelectorAll("[data-m-learn]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-m-learn");
+        const list = m.selectedIds || [];
+        const hasCustom = Boolean((m.customEn || "").trim());
+        const maxPresets = hasCustom ? 1 : 2;
+        if (list.includes(id)) {
+          m.selectedIds = list.filter((x) => x !== id);
+        } else {
+          if (list.length >= maxPresets) {
+            showToast("Tip neuroeducativo: elige máximo 2 aprendizajes en total para que sea fácil de recordar el martes.");
+            return;
+          }
+          m.selectedIds = list.concat([id]);
+        }
+        window.AppStorage.save(state);
+        renderStation3Stage();
+        renderStation3Summary();
+      });
+    });
+
+    /* Asistente bilingüe en el campo libre de cada pregunta */
+    const customEs = document.getElementById("st3-custom-es");
+    const customEn = document.getElementById("st3-custom-en");
+    const customChips = document.getElementById("st3-custom-chips");
+
+    function updateStagePreviewOnly(qid) {
+      const fresh = buildMetaAnswer(qid);
+      const monitorEl = document.getElementById("st3-studio-monitor");
+      const onairText = document.getElementById("st3-onair-text");
+      const badgeEl = document.getElementById("st3-stage-badge");
+      const outEl = document.getElementById("st3-stage-output");
+      const esEl = document.getElementById("st3-stage-es-meaning");
+      const ansBtn = document.getElementById("st3-speak-ans-btn");
+      const dlgBtn = document.getElementById("st3-speak-dialog-btn");
+
+      if (monitorEl) monitorEl.classList.toggle("is-correct", fresh.complete);
+      if (onairText) onairText.textContent = fresh.complete ? "ON AIR" : "STANDBY";
+      if (badgeEl) {
+        badgeEl.className = `validation-badge ${fresh.complete ? "status-correct" : "status-progress"}`;
+        badgeEl.textContent = fresh.complete
+          ? "✅ ¡Respuesta lista al aire! Ya puedes escuchar tu diálogo en inglés."
+          : fresh.nextStepMsg;
+      }
+      if (outEl) {
+        outEl.innerHTML = fresh.complete
+          ? fresh.html
+          : `<span class="assembly-placeholder">Aquí aparecerá la respuesta armada de Miguel por colores LEGO...</span>`;
+      }
+      if (esEl) {
+        esEl.innerHTML = fresh.complete
+          ? `<strong>Tu respuesta en español:</strong> ${escapeHtml(fresh.esMeaning)}`
+          : "Traducción de verificación: aparecerá cuando completes los bloques.";
+      }
+      if (ansBtn) {
+        ansBtn.disabled = !fresh.complete;
+        ansBtn.classList.toggle("is-unlocked", fresh.complete);
+        ansBtn.textContent = fresh.complete ? "🔊 Escuchar Respuesta" : "🔒 Completa los bloques para escuchar";
+      }
+      if (dlgBtn) dlgBtn.disabled = !fresh.complete;
+
+      /* Sincronizar estado visual de presets cuando se escribe texto propio (P0-5 fix) */
+      if (qid !== "q5" && cleanCustomClause(m.customEn)) {
+        stageEl.querySelectorAll("[data-m-reason]").forEach((b) => {
+          b.classList.remove("is-selected");
+          const enSpan = b.querySelector(".opt-en");
+          if (enSpan) enSpan.textContent = b.getAttribute("data-m-reason");
+        });
+      }
+
+      let count = 0;
+      questions.forEach((qq, i) => {
+        const done = buildMetaAnswer(qq.id).complete;
+        if (done) count += 1;
+        const tabBtn = tabsWrap.querySelector(`[data-st3-tab="${i}"]`);
+        if (tabBtn) {
+          tabBtn.classList.toggle("is-done", done);
+          const stateSpan = tabBtn.querySelector(".q-tab-state");
+          if (stateSpan) stateSpan.textContent = done ? "✅ Lista" : "Pendiente";
+        }
+      });
+      if (progressBadge) {
+        progressBadge.textContent =
+          count === questions.length ? `🏆 ¡${count} de ${questions.length} respondidas!` : `${count} de ${questions.length} respondidas`;
+      }
+    }
+
+    function renderCustomChips() {
+      if (!customEs || !customEn || !customChips) return;
+      const res = window.BilingualHelper.analyze(customEs.value);
+      if (res.matches.length === 0) {
+        customChips.innerHTML = "";
+        return;
+      }
+      customChips.innerHTML = res.matches
+        .map(
+          (item) => `
+          <button type="button" class="word-chip" data-st3-ins="${escapeHtml(item.en)}">
+            <span>+ ${escapeHtml(item.en)}</span>
+            <span class="es-mini">(${escapeHtml(item.displayEs)})</span>
+          </button>`
+        )
+        .join("");
+
+      customChips.querySelectorAll("[data-st3-ins]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const phrase = btn.getAttribute("data-st3-ins");
+          const cur = customEn.value.trim();
+          customEn.value = cur ? `${cur} ${phrase}` : phrase;
+          m.customEn = customEn.value;
+          if (q.id !== "q5") m.reason = "";
+          window.AppStorage.save(state);
+          updateStagePreviewOnly(q.id);
+          renderStation3Summary();
+        });
+      });
+    }
+
+    if (customEs) {
+      customEs.addEventListener("input", () => {
+        m.customEs = customEs.value;
+        window.AppStorage.save(state);
+        renderCustomChips();
+        updateStagePreviewOnly(q.id);
+      });
+      renderCustomChips();
+    }
+
+    if (customEn) {
+      customEn.addEventListener("input", () => {
+        m.customEn = customEn.value;
+        if (q.id !== "q5" && cleanCustomClause(m.customEn)) {
+          m.reason = "";
+        } else if (q.id === "q5" && m.customEn.trim() && (m.selectedIds || []).length >= 2) {
+          const poppedId = m.selectedIds.pop();
+          const poppedBtn = stageEl.querySelector(`[data-m-learn="${poppedId}"]`);
+          if (poppedBtn) {
+            poppedBtn.classList.remove("is-selected");
+            const optMeta = q.learnOptions.find((o) => o.id === poppedId);
+            const enSpan = poppedBtn.querySelector(".opt-en");
+            if (optMeta && enSpan) enSpan.textContent = `+ ${optMeta.en}`;
+          }
+        }
+        window.AppStorage.save(state);
+        updateStagePreviewOnly(q.id);
+        renderStation3Summary();
+      });
+    }
+
+    const clearQBtn = document.getElementById("st3-clear-q-btn");
+    if (clearQBtn) {
+      clearQBtn.addEventListener("click", () => {
+        if (q.id === "q5") {
+          state.metacognition.q5 = { hasLearnedVerb: false, selectedIds: [], customEs: "", customEn: "" };
+        } else {
+          state.metacognition[q.id] = { main: "", hasBecause: false, reason: "", customEs: "", customEn: "" };
+        }
+        window.AppStorage.save(state);
+        renderStation3Stage();
+        renderStation3Summary();
+        showToast("Pregunta reiniciada.");
+      });
+    }
+
+    const prevBtn = document.getElementById("st3-prev-btn");
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => {
+        if (st3ActiveQIdx > 0) {
+          st3ActiveQIdx -= 1;
+          renderStation3Stage();
+        }
+      });
+    }
+
+    const nextBtn = document.getElementById("st3-next-btn");
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => {
+        if (st3ActiveQIdx < questions.length - 1) {
+          st3ActiveQIdx += 1;
+          renderStation3Stage();
+        }
+      });
+    }
+
+    const gotoRehearsalBtn = document.getElementById("st3-goto-rehearsal-btn");
+    if (gotoRehearsalBtn) {
+      gotoRehearsalBtn.addEventListener("click", () => {
+        const target = document.getElementById("st3-rehearsal-section");
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }
+
+  function renderStation3Summary() {
+    const s3 = window.APP_DATA.station3Data;
+    const grid = document.getElementById("st3-summary-grid");
+    const toggleBtn = document.getElementById("st3-rehearsal-toggle-btn");
+    const speakAllBtn = document.getElementById("st3-speak-all-btn");
+    const consoleBar = document.getElementById("st3-rehearsal-console");
+    const consoleCounter = document.getElementById("st3-rehearsal-counter");
+    if (!s3 || !grid) return;
+
+    if (toggleBtn) {
+      toggleBtn.classList.toggle("is-memory-on", st3RehearsalMode);
+      toggleBtn.textContent = st3RehearsalMode
+        ? "🙈 Modo Simulacro Oral: SÍ"
+        : "🙈 Modo Simulacro Oral: NO";
+    }
+
+    const questions = s3.officialQuestions;
+    let completeCount = 0;
+    let revealedCompleteCount = 0;
+    const fullScriptParts = [];
+
+    grid.innerHTML = questions
+      .map((q, idx) => {
+        const ans = buildMetaAnswer(q.id);
+        const isRevealed = st3RevealedSummary.has(q.id);
+        if (ans.complete) {
+          completeCount += 1;
+          if (isRevealed) revealedCompleteCount += 1;
+          fullScriptParts.push(`Question ${idx + 1}. ${q.questionEn} ${ans.plainEn}`);
+        }
+
+        let bodyHtml = `<span class="helper-note" style="margin: 0;">Pendiente — haz clic en "Editar" para armar tu respuesta en la cabina arriba.</span>`;
+        if (ans.complete) {
+          if (st3RehearsalMode && !isRevealed) {
+            bodyHtml = `<button type="button" class="qa-curtain-btn" data-st3-reveal="${q.id}">🎤 Escucha la pregunta, responde en voz alta y toca aquí para verificar tu respuesta...</button>`;
+          } else {
+            bodyHtml = `
+              <div class="speaker-row">
+                <span class="speaker-pill speaker-miguel">👦 Miguel</span>
+                <div style="flex: 1;">
+                  ${ans.html}
+                  <p class="warmup-es" style="margin-top: 4px;">${escapeHtml(ans.esMeaning)}</p>
+                </div>
+              </div>`;
+          }
+        }
+
+        return `
+          <article class="qa-summary-card ${ans.complete ? "is-complete" : ""}">
+            <div class="qa-summary-top">
+              <div class="speaker-row" style="flex: 1; min-width: 220px;">
+                <span class="speaker-pill speaker-miss">👩‍🏫 La Miss</span>
+                <p class="qa-summary-q">${idx + 1}. ${escapeHtml(q.questionEn)}</p>
+              </div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-audio btn-sm" style="min-height: 44px;" data-sum-speak-q="${escapeHtml(q.questionEn)}">🔊 La Miss pregunta</button>
+                ${
+                  ans.complete && (!st3RehearsalMode || isRevealed)
+                    ? `<button type="button" class="btn btn-secondary btn-sm" style="min-height: 44px;" data-sum-speak-a="${escapeHtml(ans.plainEn)}">🔊 Mi respuesta</button>`
+                    : ""
+                }
+                <button type="button" class="btn btn-secondary btn-sm" style="min-height: 44px;" data-sum-edit="${idx}">✏️ Editar</button>
+              </div>
+            </div>
+            <div>${bodyHtml}</div>
+          </article>`;
+      })
+      .join("");
+
+    if (consoleBar && consoleCounter) {
+      consoleBar.classList.toggle("is-visible", st3RehearsalMode);
+      if (completeCount === 0) {
+        consoleCounter.innerHTML = `<span class="live-rec-dot"></span>Completa al menos una respuesta arriba para ensayar en el simulacro.`;
+      } else if (revealedCompleteCount === completeCount) {
+        consoleCounter.innerHTML = `🏆 ¡Simulacro completo! Comprobaste ${revealedCompleteCount} de ${completeCount} respuestas en voz alta.`;
+      } else {
+        consoleCounter.innerHTML = `<span class="live-rec-dot"></span>EN VIVO • Simulacro Oral: ${revealedCompleteCount} de ${completeCount} comprobadas`;
+      }
+    }
+
+    grid.querySelectorAll("[data-sum-speak-q]").forEach((btn) => {
+      btn.addEventListener("click", () => window.AppSpeech.speak(btn.getAttribute("data-sum-speak-q"), showToast));
+    });
+
+    grid.querySelectorAll("[data-sum-speak-a]").forEach((btn) => {
+      btn.addEventListener("click", () => window.AppSpeech.speak(btn.getAttribute("data-sum-speak-a"), showToast));
+    });
+
+    grid.querySelectorAll("[data-st3-reveal]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const qid = btn.getAttribute("data-st3-reveal");
+        st3RevealedSummary.add(qid);
+        renderStation3Summary();
+        const ans = buildMetaAnswer(qid);
+        if (ans.complete) window.AppSpeech.speak(ans.plainEn, showToast);
+      });
+    });
+
+    grid.querySelectorAll("[data-sum-edit]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        st3ActiveQIdx = Number(btn.getAttribute("data-sum-edit"));
+        renderStation3Stage();
+        const stage = document.getElementById("st3-interview-stage");
+        if (stage) stage.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    if (speakAllBtn) {
+      const ready = completeCount === questions.length;
+      speakAllBtn.disabled = !ready;
+      speakAllBtn.classList.toggle("is-unlocked", ready);
+      speakAllBtn.textContent = ready
+        ? "🔊 Escuchar las 5 Preguntas y Respuestas"
+        : `🔒 Completa las 5 respuestas (${completeCount}/5)`;
+      speakAllBtn.dataset.fullScript = fullScriptParts.join(" ");
+    }
+  }
+
+  function renderStation3BonusInfo() {
+    const grid = document.getElementById("st3-bonus-info-grid");
+    if (!grid) return;
+
+    const np = state.newspaper;
+    const built = buildNewspaperTexts(np);
+
+    const cards = [
+      {
+        q: "What is the title of your STEAM newspaper?",
+        a: built.checks.title
+          ? `The title of my newspaper is "${np.title.trim()}".`
+          : "Completa el TITLE en la Estación 2 para ver tu respuesta aquí."
+      },
+      {
+        q: "Who participated in the project?",
+        a: built.checks.who
+          ? built.whoSentencePlain
+          : "Completa WHO PARTICIPATED en la Estación 2 para ver tu respuesta aquí."
+      },
+      {
+        q: "Where did the project take place?",
+        a: built.checks.where
+          ? built.whereSentencePlain
+          : "Completa WHERE IT TOOK PLACE en la Estación 2 para ver tu respuesta aquí."
+      }
+    ];
+
+    grid.innerHTML = cards
+      .map((c, idx) => {
+        const hasReal = !c.a.startsWith("Completa ");
+        return `
+          <article class="bonus-info-card">
+            <div>
+              <strong style="font-size: 0.88rem; color: var(--lego-blue); display: block; margin-bottom: 4px;">${idx + 1}. ${escapeHtml(c.q)}</strong>
+              <p class="warmup-es" style="color: ${hasReal ? "var(--text)" : "var(--text-muted)"}; font-weight: ${hasReal ? "700" : "500"};">${escapeHtml(c.a)}</p>
+            </div>
+            ${
+              hasReal
+                ? `<button type="button" class="btn btn-audio btn-sm" style="min-height: 44px;" data-bonus-speak="${escapeHtml(c.q + " " + c.a)}">🔊 Escuchar Q&amp;A</button>`
+                : `<button type="button" class="btn btn-secondary btn-sm" style="min-height: 44px;" data-goto-st2>Ir a Estación 2</button>`
+            }
+          </article>`;
+      })
+      .join("");
+
+    grid.querySelectorAll("[data-bonus-speak]").forEach((btn) => {
+      btn.addEventListener("click", () => window.AppSpeech.speak(btn.getAttribute("data-bonus-speak"), showToast));
+    });
+
+    grid.querySelectorAll("[data-goto-st2]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tab = document.querySelector(`.station-tab[data-station="station-2"]`);
+        if (tab) tab.click();
+      });
+    });
+  }
+
+  function renderStation3All() {
+    renderStation3Warmups();
+    renderStation3Radar();
+    renderStation3Stage();
+    renderStation3Summary();
+    renderStation3BonusInfo();
+  }
+
+  function initStation3() {
+    renderStation3All();
+
+    const rehearsalBtn = document.getElementById("st3-rehearsal-toggle-btn");
+    if (rehearsalBtn) {
+      rehearsalBtn.addEventListener("click", () => {
+        st3RehearsalMode = !st3RehearsalMode;
+        st3RevealedSummary = new Set();
+        renderStation3Summary();
+        if (st3RehearsalMode) {
+          showToast("🎭 Simulacro activado: escucha cada pregunta, responde en voz alta y toca para verificar.");
+        }
+      });
+    }
+
+    const rehearsalResetBtn = document.getElementById("st3-rehearsal-reset-btn");
+    if (rehearsalResetBtn) {
+      rehearsalResetBtn.addEventListener("click", () => {
+        st3RevealedSummary = new Set();
+        renderStation3Summary();
+        showToast("🔄 Todas las respuestas ocultas de nuevo. ¡A ensayar!");
+      });
+    }
+
+    const speakAllBtn = document.getElementById("st3-speak-all-btn");
+    if (speakAllBtn) {
+      speakAllBtn.addEventListener("click", () => {
+        if (speakAllBtn.disabled || !speakAllBtn.dataset.fullScript) return;
+        window.AppSpeech.speak(speakAllBtn.dataset.fullScript, showToast);
       });
     }
   }
@@ -2121,6 +3271,10 @@
         compDraft = { item1Id: null, verb: "was", adjId: null, hasThan: false, item2Id: null };
         tmIsPast = false;
         revealedMemoryKeys = new Set();
+        st3ActiveQIdx = 0;
+        st3RehearsalMode = false;
+        st3RevealedWarmups = new Set();
+        st3RevealedSummary = new Set();
         renderBank();
         renderStation0Builder();
         renderStation1Quiz();
@@ -2130,6 +3284,7 @@
         renderStation2TimeMachine();
         renderStation2Quiz();
         renderStation2Newspaper();
+        renderStation3All();
         showToast("Datos reiniciados correctamente.");
       });
     }
@@ -2146,6 +3301,7 @@
     initStation0Builder();
     initStation1();
     initStation2();
+    initStation3();
     initStorageActions();
   });
 })();

@@ -26,17 +26,26 @@ window.AppStorage = (function () {
     memoryMode: false
   };
 
+  const DEFAULT_METACOGNITION = {
+    q1: { main: "", hasBecause: false, reason: "", customEs: "", customEn: "" },
+    q2: { main: "", hasBecause: false, reason: "", customEs: "", customEn: "" },
+    q3: { main: "", hasBecause: false, reason: "", customEs: "", customEn: "" },
+    q4: { main: "", hasBecause: false, reason: "", customEs: "", customEn: "" },
+    q5: { hasLearnedVerb: false, selectedIds: [], customEs: "", customEn: "" }
+  };
+
   const DEFAULT_STATE = {
-    version: 2,
+    version: 3,
     speechRate: 0.85,
     customItems: [],
     completedStation0Challenges: [],
     station1QuizSolved: [],
     station2VerbQuizSolved: [],
+    station3RadarSolved: [],
     /* Espacios reservados para Estaciones 1 a 4 */
     comparatives: [],
     newspaper: DEFAULT_NEWSPAPER,
-    metacognition: {},
+    metacognition: DEFAULT_METACOGNITION,
     practiceStats: { completed: 0 }
   };
 
@@ -51,6 +60,13 @@ window.AppStorage = (function () {
       const parsed = JSON.parse(raw);
       const merged = Object.assign(clone(DEFAULT_STATE), parsed);
       merged.newspaper = Object.assign(clone(DEFAULT_NEWSPAPER), parsed.newspaper || {});
+      const incomingMeta = parsed.metacognition || {};
+      merged.metacognition = clone(DEFAULT_METACOGNITION);
+      ["q1", "q2", "q3", "q4", "q5"].forEach((k) => {
+        if (incomingMeta[k]) {
+          merged.metacognition[k] = Object.assign(merged.metacognition[k], incomingMeta[k]);
+        }
+      });
       return merged;
     } catch (err) {
       return clone(DEFAULT_STATE);

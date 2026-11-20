@@ -372,6 +372,14 @@ main {
   transform: translateY(0);
 }
 
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: grayscale(0.35);
+}
+
 .btn-primary {
   background: var(--lego-blue);
   color: #ffffff;
@@ -488,6 +496,14 @@ details.neuro-details summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+
+details.neuro-details summary > span:last-child {
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  color: var(--lego-blue);
 }
 
 details.neuro-details summary::-webkit-details-marker {
@@ -1698,6 +1714,24 @@ details.neuro-details summary::-webkit-details-marker {
   box-shadow: 0 4px 12px rgba(4, 120, 87, 0.24);
 }
 
+/* Purple Editorial Options for 1:1 LEGO Morado Contract (P0-2 fix) */
+.editorial-opt-purple {
+  background: var(--lego-purple-bg);
+  border-color: var(--lego-purple-border);
+  color: var(--lego-purple);
+}
+
+.editorial-opt-purple:hover {
+  border-color: var(--lego-purple);
+}
+
+.editorial-opt-purple.is-selected {
+  background: var(--lego-purple);
+  border-color: #5b21b6;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.28);
+}
+
 .editorial-opt-btn.is-selected .opt-es {
   color: rgba(255, 255, 255, 0.9);
   opacity: 1;
@@ -2363,6 +2397,639 @@ details.neuro-details summary::-webkit-details-marker {
 
   .press-ready-stamp {
     font-size: 0.56rem;
+  }
+}
+
+/* ==================== ESTACIÓN 3: STUDIO INTERVIEW & METACOGNITION Q&A (R2 AWWWARDS) ==================== */
+
+/* Acoustic Studio Warmup Banner */
+.studio-hero-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%);
+  color: #ffffff;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(30, 27, 75, 0.22);
+}
+
+.studio-hero-bar code {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fef08a;
+}
+
+.studio-mic-badge {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: grid;
+  place-items: center;
+  font-size: 1.75rem;
+  box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.18), 0 6px 16px rgba(5, 150, 105, 0.35);
+  flex-shrink: 0;
+}
+
+.studio-hero-bar p {
+  margin: 4px 0 0;
+  font-size: 0.87rem;
+  color: #e0e7ff;
+}
+
+.why-bridge-visual {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1.5px solid rgba(167, 243, 208, 0.35);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.why-chip-q {
+  background: #2563eb;
+  color: #ffffff;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.why-bridge-pill {
+  display: inline-block;
+  background: #059669;
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.why-warmup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.why-warmup-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid var(--lego-purple-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.why-q-text {
+  margin: 6px 0 2px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.why-answer-reveal {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--lego-green-bg);
+  border: 1.5px solid var(--lego-green-border);
+}
+
+/* 3-over-2 Editorial Bento Grid for 5-Card Keyword Radar (Zero Orphan Gaps!) */
+.radar-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.radar-bento-grid > .quiz-card:nth-child(1),
+.radar-bento-grid > .quiz-card:nth-child(2),
+.radar-bento-grid > .quiz-card:nth-child(3) {
+  grid-column: span 2;
+}
+
+.radar-bento-grid > .quiz-card:nth-child(4),
+.radar-bento-grid > .quiz-card:nth-child(5) {
+  grid-column: span 3;
+}
+
+/* Studio 5-Question Deck Navigation */
+.studio-deck-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.studio-q-tab {
+  appearance: none;
+  border: 2px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 9px 10px;
+  min-height: 54px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-align: center;
+  transition: all 0.16s ease;
+}
+
+.studio-q-tab:hover {
+  border-color: var(--lego-blue);
+  background: var(--lego-blue-bg);
+}
+
+.studio-q-tab.is-active {
+  background: #1e1b4b;
+  border-color: #1e1b4b;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(30, 27, 75, 0.25);
+}
+
+.studio-q-tab.is-done:not(.is-active) {
+  background: var(--lego-green-bg);
+  border-color: var(--lego-green);
+  color: var(--lego-green);
+}
+
+.studio-q-tab .q-tab-state {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.88;
+}
+
+/* Active Interview Stage Card */
+.interview-stage {
+  border: 2px solid #c7d2fe;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fafaff 0%, #ffffff 30%);
+  padding: 18px;
+  overflow: hidden;
+  scroll-margin-top: 88px;
+}
+
+.miss-prompt-banner {
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.miss-prompt-kicker {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #93c5fd;
+  margin-bottom: 4px;
+}
+
+.miss-prompt-en {
+  margin: 0 0 6px;
+  font-size: 1.24rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #ffffff;
+  overflow-wrap: anywhere;
+}
+
+.miss-prompt-es {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #cbd5e1;
+}
+
+mark.kw-highlight {
+  background: #2563eb;
+  color: #ffffff;
+  padding: 1px 7px;
+  border-radius: 7px;
+  font-weight: 900;
+}
+
+mark.kw-why {
+  background: #059669;
+  color: #ffffff;
+  padding: 1px 7px;
+  border-radius: 7px;
+  font-weight: 900;
+}
+
+.parent-coach-strip {
+  background: #fef3c7;
+  border: 1.5px solid #fcd34d;
+  color: #78350f;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.consistency-tip-box {
+  background: #eff6ff;
+  border: 1.5px solid #93c5fd;
+  color: #1e40af;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.qa-stage-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.qa-stage-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Bespoke Awwwards "ON AIR" Studio Monitor Card */
+.studio-monitor {
+  background: #ffffff;
+  border: 2px solid #cbd5e1;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.studio-monitor.is-correct {
+  border-color: var(--lego-green);
+  box-shadow: 0 14px 32px rgba(4, 120, 87, 0.16);
+}
+
+.studio-monitor-bar {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.studio-guest-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.studio-guest-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 20%;
+  border: 2px solid rgba(147, 197, 253, 0.8);
+  flex-shrink: 0;
+}
+
+.studio-guest-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.studio-guest-meta strong {
+  font-size: 0.86rem;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+.studio-guest-meta span {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+}
+
+.studio-onair-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.onair-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.18);
+  color: #fde68a;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+}
+
+.studio-monitor.is-correct .onair-pill {
+  background: rgba(16, 185, 129, 0.22);
+  color: #a7f3d0;
+  border-color: rgba(52, 211, 153, 0.7);
+}
+
+.onair-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fbbf24;
+}
+
+.studio-monitor.is-correct .onair-dot {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+/* 5-Bar Acoustic Equalizer (animates live when Web Speech speaks!) */
+.eq-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 16px;
+}
+
+.eq-bars span {
+  width: 3px;
+  border-radius: 2px;
+  background: #64748b;
+  height: 5px;
+  transition: height 0.2s ease, background 0.2s ease;
+}
+
+.studio-monitor.is-correct .eq-bars span {
+  background: #34d399;
+}
+
+.eq-bars span:nth-child(2) { height: 9px; }
+.eq-bars span:nth-child(3) { height: 13px; }
+.eq-bars span:nth-child(4) { height: 8px; }
+.eq-bars span:nth-child(5) { height: 5px; }
+
+body.is-speaking .eq-bars span {
+  background: #fbbf24;
+  animation: eqBounce 0.55s ease-in-out infinite alternate;
+}
+
+body.is-speaking .eq-bars span:nth-child(2) { animation-delay: 0.1s; }
+body.is-speaking .eq-bars span:nth-child(3) { animation-delay: 0.2s; }
+body.is-speaking .eq-bars span:nth-child(4) { animation-delay: 0.3s; }
+body.is-speaking .eq-bars span:nth-child(5) { animation-delay: 0.15s; }
+
+@keyframes eqBounce {
+  0% { height: 4px; }
+  100% { height: 16px; }
+}
+
+.studio-monitor-body {
+  padding: 15px;
+  background: #f8fafc;
+}
+
+.studio-monitor.is-correct .studio-monitor-body {
+  background: var(--lego-green-bg);
+}
+
+.qa-nav-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* Rehearsal Console & Summary Script Board */
+.rehearsal-console-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, #451a03 0%, #78350f 100%);
+  color: #fef3c7;
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin-bottom: 14px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.rehearsal-console-bar.is-visible {
+  display: flex;
+}
+
+.live-rec-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  margin-right: 6px;
+}
+
+.qa-summary-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.qa-summary-card {
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #ffffff;
+  display: grid;
+  gap: 10px;
+}
+
+.qa-summary-card.is-complete {
+  border-color: var(--lego-green-border);
+}
+
+.qa-summary-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.speaker-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.speaker-pill {
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.speaker-miss {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.speaker-miguel {
+  background: var(--lego-green-bg);
+  color: var(--lego-green);
+}
+
+.qa-summary-q {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.qa-curtain-btn {
+  width: 100%;
+  min-height: 48px;
+  border: 2px dashed #b45309;
+  background: #fef3c7;
+  color: #78350f;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.qa-curtain-btn:hover {
+  background: #fde68a;
+}
+
+.bonus-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.bonus-info-card {
+  background: #ffffff;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+@media (max-width: 960px) {
+  .studio-hero-bar {
+    grid-template-columns: auto 1fr;
+  }
+
+  .why-bridge-visual {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+
+  .radar-bento-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .radar-bento-grid > .quiz-card:nth-child(n) {
+    grid-column: span 1;
+  }
+
+  .radar-bento-grid > .quiz-card:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  .why-warmup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .qa-stage-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .studio-deck-tabs {
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .miss-prompt-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .radar-bento-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .radar-bento-grid > .quiz-card:nth-child(n) {
+    grid-column: span 1;
+  }
+
+  .miss-prompt-en {
+    font-size: 1.08rem;
+  }
+
+  .interview-stage {
+    padding: 13px;
+  }
+}
+
+@media (max-width: 560px) {
+  .studio-deck-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .studio-deck-tabs .studio-q-tab:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.is-speaking .eq-bars span {
+    animation: none;
   }
 }
 
