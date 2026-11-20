@@ -52,9 +52,9 @@
         <span>💬 3. 5 Preguntas</span>
         <span class="tab-badge ready">Activa</span>
       </button>
-      <button type="button" class="station-tab is-upcoming" role="tab" aria-selected="false" data-station="station-4">
+      <button type="button" class="station-tab" role="tab" aria-selected="false" data-station="station-4">
         <span>🏆 4. Reto Martes</span>
-        <span class="tab-badge">Fase 4</span>
+        <span class="tab-badge ready">Activa</span>
       </button>
     </div>
   </nav>
@@ -777,17 +777,144 @@
       </div>
     </section>
 
+    <!-- ==================== ESTACIÓN 4 (ACTIVA EN FASE 4 — GRAN FINAL) ==================== -->
     <section id="station-4" class="station-panel" role="tabpanel">
-      <div class="card upcoming-card">
-        <div class="upcoming-icon">🏆</div>
-        <h2>Estación 4: Entrenador del Martes + Impresión (Próxima Fase 4)</h2>
-        <p>Se construirá y publicará al aprobar la Estación 3.</p>
-        <div class="upcoming-preview-list">
-          <span>• Reto de escritura <code>Fill in the Blanks</code> usando las propias respuestas de Miguel.</span>
-          <span>• Impresión limpia en 2 hojas (Periódico guía + Tarjetas de bolsillo de las 5 preguntas).</span>
+      <!-- Bloque A: Tablero de Preparación del Martes -->
+      <div class="card no-print">
+        <div class="arena-hero">
+          <div class="arena-avatar-ring">
+            <img src="assets/images/miguel-familia.jpg" alt="Miguel Ángel y su familia listos para el martes">
+          </div>
+          <div>
+            <h2>🏆 Estación 4: Arena Final del Martes &amp; Guía Imprimible</h2>
+            <p>
+              ¡Último nivel, Miguel Ángel! Aquí entrenas tu memoria escribiendo <strong>tus propias frases y periódico</strong>
+              antes del martes (8:00–10:00 a.m.) e imprimes tu <strong>Guía Limpia de 2 Hojas</strong>.
+            </p>
+          </div>
+          <div class="arena-meter-box">
+            <div class="readiness-ring-wrap">
+              <svg class="readiness-ring-svg" viewBox="0 0 80 80" aria-hidden="true">
+                <defs>
+                  <linearGradient id="arenaRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fbbf24" />
+                    <stop offset="100%" stop-color="#34d399" />
+                  </linearGradient>
+                </defs>
+                <circle class="ring-track" cx="40" cy="40" r="33"></circle>
+                <circle class="ring-progress" id="st4-ring-circle" cx="40" cy="40" r="33" stroke-dasharray="207.35" stroke-dashoffset="207.35"></circle>
+              </svg>
+              <div class="arena-meter-pct" id="st4-readiness-pct">0%</div>
+            </div>
+            <div class="arena-meter-label">Preparación Martes</div>
+          </div>
         </div>
-        <div>
-          <button type="button" class="btn btn-primary" data-goto-station="station-0">Volver a Estación 0</button>
+
+        <div class="readiness-grid" id="st4-readiness-grid"></div>
+      </div>
+
+      <!-- Bloque B: Entrenador de Memoria Activa (Fill in the Blanks — 2 Niveles) -->
+      <div class="card no-print">
+        <div class="card-header">
+          <h3 class="card-title">🧠 Reto de Memoria Activa (Fill in the Blanks con TUS Respuestas)</h3>
+          <span class="role-tag role-miguel" id="st4-trainer-badge">0 de 0 completados</span>
+        </div>
+        <p class="helper-note">
+          Empieza en <strong>Nivel 1</strong> tocando la palabra correcta para calentar, y luego sube al
+          <strong>Nivel 2 (Reto Martes)</strong> para escribir cada palabra clave tú solo como en el examen. Si te trabas, usa la <strong>Pista letra por letra</strong>.
+        </p>
+
+        <div class="trainer-controls-bar">
+          <div class="level-segmented" role="group" aria-label="Nivel de entrenamiento">
+            <button type="button" class="level-seg-btn is-active" data-st4-level="1">
+              🧩 Nivel 1: Banco de Palabras
+            </button>
+            <button type="button" class="level-seg-btn" data-st4-level="2">
+              ⌨️ Nivel 2: Reto Martes (Escribir)
+            </button>
+          </div>
+
+          <button type="button" class="btn btn-secondary btn-sm" id="st4-reset-run-btn" style="min-height: 44px;">
+            🔄 Reiniciar reto actual
+          </button>
+        </div>
+
+        <div class="filter-pill-row" id="st4-filter-row">
+          <button type="button" class="filter-pill-btn is-active" data-st4-filter="all">🎯 Todo el Examen</button>
+          <button type="button" class="filter-pill-btn" data-st4-filter="comp">⚖️ Comparatives</button>
+          <button type="button" class="filter-pill-btn" data-st4-filter="news">📰 Periódico (Past Simple)</button>
+          <button type="button" class="filter-pill-btn" data-st4-filter="meta">💬 5 Preguntas (Because)</button>
+        </div>
+
+        <div id="st4-demo-notice" class="demo-source-notice" style="display: none;"></div>
+
+        <div class="trainer-progress-strip">
+          <div class="trainer-progress-top">
+            <span id="st4-progress-text">Progreso del reto: 0 de 0 palabras dominadas</span>
+            <span id="st4-record-text">Mejor marca (Examen Completo): Nivel 1 (0%) • Nivel 2 (0%)</span>
+          </div>
+          <div class="readiness-bar-track">
+            <div class="readiness-bar-fill" id="st4-trainer-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="victory-banner" id="st4-victory-banner">
+          <div>
+            <h3 id="st4-victory-title">🏆 ¡VICTORY ROYALE STEAM, MIGUEL ÁNGEL!</h3>
+            <p id="st4-victory-sub">Dominaste todas las palabras clave de este reto. ¡Estás súper listo para el martes!</p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" id="st4-victory-audio-btn" style="min-height: 44px;">
+              🔊 Escuchar Felicitación
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="st4-goto-all-btn" style="min-height: 44px; display: none; background: #fbbf24; color: #0f172a;">
+              🎯 Ir a Todo el Examen
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="st4-upgrade-level2-btn" style="min-height: 44px; background: #fbbf24; color: #0f172a;">
+              ⬆️ Subir al Nivel 2 (Escribir)
+            </button>
+          </div>
+        </div>
+
+        <div class="exercise-list" id="st4-exercise-list"></div>
+      </div>
+
+      <!-- Bloque C: Estudio de Impresión Limpia (2 Hojas: Periódico+Comparativos y Guía de Bolsillo) -->
+      <div class="card" id="print-studio-card">
+        <div class="card-header no-print">
+          <h3 class="card-title">🖨️ Guía Imprimible del Martes (Exactamente 2 Hojas Limpias)</h3>
+          <button type="button" class="btn btn-primary" id="st4-print-btn">
+            🖨️ Imprimir 2 Hojas / Guardar PDF
+          </button>
+        </div>
+        <p class="helper-note no-print">
+          Revisa aquí en pantalla exactamente cómo quedarán tus <strong>2 hojas impresas</strong> (Hoja 1: Modelo de tu Periódico STEAM + Comparativos;
+          Hoja 2: Guía de bolsillo con las 5 preguntas para el repaso del lunes en la noche). Al pulsar <strong>Imprimir</strong>, solo salen estas 2 hojas limpias.
+        </p>
+
+        <div class="print-studio-toolbar no-print">
+          <div class="level-segmented" role="group" aria-label="Vista previa de hojas">
+            <button type="button" class="level-seg-btn is-active" data-print-view="both">📑 Ver Ambas Hojas</button>
+            <button type="button" class="level-seg-btn" data-print-view="sheet1">📄 Solo Hoja 1</button>
+            <button type="button" class="level-seg-btn" data-print-view="sheet2">📄 Solo Hoja 2</button>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <button type="button" class="toolbar-toggle-btn is-on" id="st4-print-hl-btn">
+              🖍️ Subrayar palabras clave: SÍ
+            </button>
+            <button type="button" class="toolbar-toggle-btn" id="st4-print-pencil-btn">
+              ✏️ Práctica con Lápiz: NO
+            </button>
+          </div>
+        </div>
+
+        <div class="print-preview-stage" id="print-sheets-root">
+          <!-- HOJA 1: Periódico STEAM + Comparativos -->
+          <section class="print-sheet" id="print-sheet-1" aria-label="Hoja 1 Imprimible: Periódico STEAM y Comparativos"></section>
+
+          <!-- HOJA 2: Guía de Bolsillo 5 Preguntas + Checklist del Martes -->
+          <section class="print-sheet" id="print-sheet-2" aria-label="Hoja 2 Imprimible: 5 Preguntas de Metacognición"></section>
         </div>
       </div>
     </section>

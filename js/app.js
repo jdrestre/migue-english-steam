@@ -46,6 +46,9 @@
         panels.forEach((p) => {
           p.classList.toggle("is-active", p.id === targetId);
         });
+        if (targetId === "station-4") {
+          renderStation4All();
+        }
         if (typeof tab.scrollIntoView === "function") {
           tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
         }
@@ -3249,6 +3252,999 @@
     }
   }
 
+  /* ==================== ESTACIÓN 4: RETO MARTES + IMPRESIÓN LIMPIA (R2 AWWWARDS) ==================== */
+  let st4Level = 1;
+  let st4Filter = "all";
+  let st4PrintView = "both";
+  let st4SolvedIds = new Set();
+  let st4HintDepth = {};
+  let st4TypedDrafts = {};
+  let st4VictoryAnnounced = false;
+
+  function normalizeTypedAnswer(str) {
+    return String(str || "")
+      .toLowerCase()
+      .replace(/[’`]/g, "'")
+      .replace(/[.,!?]+$/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function buildProgressiveHint(answer, depth) {
+    const clean = String(answer || "");
+    if (!clean) return "";
+    let revealed = 0;
+    const out = [];
+    for (let i = 0; i < clean.length; i += 1) {
+      const ch = clean[i];
+      if (ch === " " || ch === "'" || ch === "-") {
+        out.push(ch === " " ? "  " : ch);
+      } else if (revealed < depth) {
+        out.push(ch);
+        revealed += 1;
+      } else {
+        out.push("_");
+      }
+    }
+    return out.join(" ");
+  }
+
+  function deterministicShuffle(arr, seedStr) {
+    const copy = arr.slice();
+    let hash = 0;
+    for (let i = 0; i < seedStr.length; i += 1) {
+      hash = (hash * 31 + seedStr.charCodeAt(i)) % 9973;
+    }
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      hash = (hash * 37 + 17) % 9973;
+      const j = hash % (i + 1);
+      const tmp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = tmp;
+    }
+    return copy;
+  }
+
+  function getDistractorsFor(answer, kind) {
+    const lower = String(answer || "").toLowerCase();
+    const map = {
+      "than": ["that", "because", "then"],
+      "because": ["than", "why", "and"],
+      "easier": ["more easy", "easyer", "better"],
+      "harder": ["more hard", "hardest", "easier"],
+      "faster": ["more fast", "fastest", "slower"],
+      "longer": ["more long", "longest", "shorter"],
+      "more difficult": ["difficulter", "more easy", "difficults"],
+      "more interesting": ["interestinger", "more easy", "interested"],
+      "more colorful": ["colorfuler", "more color", "colors"],
+      "more exciting": ["excitinger", "more excited", "excites"],
+      "more creative": ["creativer", "more create", "created"],
+      "more fun": ["funner", "more funny", "funnier"],
+      "better": ["gooder", "more good", "best"],
+      "participated": ["participate", "participating", "participatd"],
+      "took place": ["take place", "taked place", "taking place"],
+      "created": ["create", "createed", "creating"],
+      "made": ["maked", "make", "making"],
+      "built": ["builded", "build", "building"],
+      "worked on": ["work on", "working on", "workd on"],
+      "designed": ["design", "designing", "designd"],
+      "painted": ["paint", "panted", "painting"],
+      "used": ["use", "useed", "using"],
+      "learned": ["learn", "learnd", "learning"]
+    };
+    const fallback =
+      kind === "comp"
+        ? ["more difficult", "easier", "better"]
+        : kind === "meta"
+          ? ["because", "learned", "than"]
+          : ["created", "made", "used"];
+
+    const rawPool = map[lower] || fallback;
+    const unique = [];
+    rawPool.forEach((opt) => {
+      if (opt.toLowerCase() !== lower && !unique.includes(opt)) unique.push(opt);
+    });
+    return deterministicShuffle([answer].concat(unique.slice(0, 3)), `${kind}-${answer}`);
+  }
+
+  /* Single-pass longest-first regex highlighter / pencil blanker (P0-1 fix: ZERO nested spans!) */
+  function formatPrintKeywords(text, keywords, asPencilBlanks) {
+    const escaped = escapeHtml(text || "");
+    const unique = Array.from(
+      new Set((keywords || []).filter(Boolean).map((k) => k.toLowerCase()))
+    );
+    if (unique.length === 0) return escaped;
+    unique.sort((a, b) => b.length - a.length);
+    const pattern = unique
+      .map((kw) => kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join("|");
+    const re = new RegExp(`\\b(${pattern})\\b`, "gi");
+    if (asPencilBlanks) {
+      return escaped.replace(
+        re,
+        `<span class="print-pencil-blank" aria-label="espacio para escribir">$1</span>`
+      );
+    }
+    return escaped.replace(re, `<span class="print-hl-word">$1</span>`);
+  }
+
+  function buildStation4Exercises() {
+    const exercises = [];
+    const usedDemoPillars = [];
+
+    /* --- 1. COMPARATIVES (Estación 1) --- */
+    const savedComps = state.comparatives || [];
+    const compSource =
+      savedComps.length > 0
+        ? savedComps.slice(0, 4)
+        : [
+            {
+              id: "demo-c1",
+              en: "The Maze was more difficult than the dream catcher.",
+              tokens: { blue: "The Maze", orange: "was more difficult", purple: "the dream catcher" },
+              isDemo: true
+            },
+            {
+              id: "demo-c2",
+              en: "The Dream Catcher was easier than the maze.",
+              tokens: { blue: "The Dream Catcher", orange: "was easier", purple: "the maze" },
+              isDemo: true
+            }
+          ];
+    if (savedComps.length === 0) usedDemoPillars.push("Estación 1 (Comparatives)");
+
+    compSource.forEach((c, idx) => {
+      if (c.tokens && c.tokens.orange) {
+        const parts = c.tokens.orange.split(" ");
+        const verb = parts[0];
+        const adj = parts.slice(1).join(" ");
+        if (idx % 2 === 0 && adj) {
+          exercises.push({
+            id: `ex-comp-${idx}`,
+            category: "comp",
+            badge: c.isDemo ? "Comparatives (Ejemplo)" : "Tu Comparativo",
+            context: "Completa el adjetivo comparativo correcto (regla -er / more / better):",
+            before: `${c.tokens.blue} ${verb} `,
+            answer: adj,
+            after: ` than ${c.tokens.purple}.`,
+            fullEn: c.en,
+            choices: getDistractorsFor(adj, "comp")
+          });
+        } else {
+          exercises.push({
+            id: `ex-comp-${idx}`,
+            category: "comp",
+            badge: c.isDemo ? "Comparatives (Ejemplo)" : "Tu Comparativo",
+            context: "No olvides el conector obligatorio de los comparativos:",
+            before: `${c.tokens.blue} ${c.tokens.orange} `,
+            answer: "than",
+            after: ` ${c.tokens.purple}.`,
+            fullEn: c.en,
+            choices: getDistractorsFor("than", "comp")
+          });
+        }
+      } else {
+        const matchThan = /\bthan\b/i.exec(c.en || "");
+        if (matchThan) {
+          exercises.push({
+            id: `ex-comp-${idx}`,
+            category: "comp",
+            badge: "Tu Comparativo",
+            context: "Completa el conector obligatorio para comparar:",
+            before: c.en.slice(0, matchThan.index),
+            answer: matchThan[0],
+            after: c.en.slice(matchThan.index + matchThan[0].length),
+            fullEn: c.en,
+            choices: getDistractorsFor("than", "comp")
+          });
+        }
+      }
+    });
+
+    /* --- 2. STEAM NEWSPAPER — PAST SIMPLE (Estación 2: los 6 verbos clave completos) --- */
+    const np = state.newspaper;
+    const builtNp = buildNewspaperTexts(np);
+    const hasCustomNp = builtNp.completedCount >= 3;
+    if (!hasCustomNp) usedDemoPillars.push("Estación 2 (Periódico STEAM)");
+
+    const npWhoPlain = builtNp.checks.who
+      ? builtNp.whoSentencePlain
+      : "In this STEAM project, I participated with my classmates and my teachers.";
+    const idxPart = npWhoPlain.indexOf("participated");
+    if (idxPart !== -1) {
+      exercises.push({
+        id: "ex-news-who",
+        category: "news",
+        badge: builtNp.checks.who ? "Tu Periódico • WHO" : "Periódico • WHO (Ejemplo)",
+        context: "Sección WHO PARTICIPATED — verbo en Past Simple:",
+        before: npWhoPlain.slice(0, idxPart),
+        answer: "participated",
+        after: npWhoPlain.slice(idxPart + "participated".length),
+        fullEn: npWhoPlain,
+        choices: getDistractorsFor("participated", "news")
+      });
+    }
+
+    const npWherePlain = builtNp.checks.where
+      ? builtNp.whereSentencePlain
+      : "The project took place in our 3rd grade classroom at Colegio Benedictino de Santa María.";
+    const idxTook = npWherePlain.indexOf("took place");
+    if (idxTook !== -1) {
+      exercises.push({
+        id: "ex-news-where",
+        category: "news",
+        badge: builtNp.checks.where ? "Tu Periódico • WHERE" : "Periódico • WHERE (Ejemplo)",
+        context: "Sección WHERE IT TOOK PLACE — pasado de 'take place':",
+        before: npWherePlain.slice(0, idxTook),
+        answer: "took place",
+        after: npWherePlain.slice(idxTook + "took place".length),
+        fullEn: npWherePlain,
+        choices: getDistractorsFor("took place", "news")
+      });
+    }
+
+    const s1Verb = np.step1Verb || "created";
+    const s1Obj = np.step1Obj || "the maze";
+    exercises.push({
+      id: "ex-news-step1",
+      category: "news",
+      badge: np.step1Verb && np.step1Obj ? "Tu Periódico • First" : "Periódico • First (Ejemplo)",
+      context: "Sección WHAT DID YOU DO (Paso 1) — verbo en Past Simple:",
+      before: "First, we ",
+      answer: s1Verb,
+      after: ` ${s1Obj}.`,
+      fullEn: `First, we ${s1Verb} ${s1Obj}.`,
+      choices: getDistractorsFor(s1Verb, "news")
+    });
+
+    const s2Verb = np.step2Verb && !builtNp.isDuplicateStep ? np.step2Verb : "made";
+    const s2Obj = np.step2Obj && !builtNp.isDuplicateStep ? np.step2Obj : "the dream catcher";
+    exercises.push({
+      id: "ex-news-step2",
+      category: "news",
+      badge: np.step2Verb && np.step2Obj && !builtNp.isDuplicateStep ? "Tu Periódico • Then" : "Periódico • Then (Ejemplo)",
+      context: "Sección WHAT DID YOU DO (Paso 2) — verbo en Past Simple:",
+      before: "Then, we ",
+      answer: s2Verb,
+      after: ` ${s2Obj}.`,
+      fullEn: `Then, we ${s2Verb} ${s2Obj}.`,
+      choices: getDistractorsFor(s2Verb, "news")
+    });
+
+    const matsList = (np.step2Materials || []).length > 0 ? joinEnglishList(np.step2Materials) : "cardboard, wool and thread, and colors";
+    exercises.push({
+      id: "ex-news-mats",
+      category: "news",
+      badge: (np.step2Materials || []).length > 0 ? "Tu Periódico • Materiales" : "Periódico • Materiales (Ejemplo)",
+      context: "Sección WHAT DID YOU DO — verbo en pasado de 'use' (usar):",
+      before: "We ",
+      answer: "used",
+      after: ` ${matsList}.`,
+      fullEn: `We used ${matsList}.`,
+      choices: getDistractorsFor("used", "news")
+    });
+
+    const npLearn = np.step3Learning || "how to build a maze and a dream catcher";
+    exercises.push({
+      id: "ex-news-learn",
+      category: "news",
+      badge: np.step3Learning ? "Tu Periódico • Finally" : "Periódico • Finally (Ejemplo)",
+      context: "Sección WHAT DID YOU DO (Cierre) — verbo en pasado de 'learn' (aprender):",
+      before: "Finally, we ",
+      answer: "learned",
+      after: ` ${npLearn}.`,
+      fullEn: `Finally, we learned ${npLearn}.`,
+      choices: getDistractorsFor("learned", "news")
+    });
+
+    /* --- 3. METACOGNITION Q&A (Estación 3) --- */
+    const s3 = window.APP_DATA.station3Data;
+    const demoMetaFallback = {
+      q1: { full: "My favorite task was making the dream catcher because it was fun and creative." },
+      q2: { full: "Yes, it was, because the maze had many small parts." },
+      q3: { full: "Making the dream catcher was easier for me because I enjoyed making it step by step." },
+      q4: { full: "The most boring part was waiting for the glue to dry because it was slow." },
+      q5: { full: "I learned how to make a maze and a dream catcher." }
+    };
+    let anyMetaDemo = false;
+
+    s3.officialQuestions.forEach((q, idx) => {
+      const built = buildMetaAnswer(q.id);
+      const isReal = built.complete;
+      if (!isReal) anyMetaDemo = true;
+      let fullSentence = isReal ? built.plainEn : demoMetaFallback[q.id].full;
+
+      /* P0-4 fix: En P5 usa solo la 1ra oración para no filtrar 'learned' en la 2da oración */
+      if (q.id === "q5" && fullSentence.includes(". I also learned")) {
+        fullSentence = fullSentence.split(". I also learned")[0] + ".";
+      }
+
+      const targetWord = q.id === "q5" ? "learned" : q.id === "q3" ? "easier" : "because";
+      const matchRe = new RegExp(`\\b${targetWord}\\b`, "i");
+      const match = matchRe.exec(fullSentence);
+
+      if (match) {
+        const exactWord = match[0];
+        exercises.push({
+          id: `ex-meta-${q.id}`,
+          category: "meta",
+          badge: isReal ? `Tu Respuesta • P${idx + 1}` : `Pregunta ${idx + 1} (Ejemplo)`,
+          context: `Pregunta de la Miss: "${q.questionEn}"`,
+          before: fullSentence.slice(0, match.index),
+          answer: exactWord,
+          after: fullSentence.slice(match.index + exactWord.length),
+          fullEn: fullSentence,
+          choices: getDistractorsFor(exactWord, "meta")
+        });
+      }
+    });
+
+    if (anyMetaDemo) usedDemoPillars.push("Estación 3 (5 Preguntas)");
+
+    return { exercises, usedDemoPillars };
+  }
+
+  function renderStation4Readiness() {
+    const pctEl = document.getElementById("st4-readiness-pct");
+    const ringEl = document.getElementById("st4-ring-circle");
+    const grid = document.getElementById("st4-readiness-grid");
+    if (!pctEl || !grid) return;
+
+    const compCount = (state.comparatives || []).length;
+    const compPct = Math.min(100, Math.round((compCount / 3) * 100));
+
+    const npBuilt = buildNewspaperTexts(state.newspaper);
+    const npPct = Math.round((npBuilt.completedCount / 5) * 100);
+
+    const s3Qs = window.APP_DATA.station3Data.officialQuestions;
+    let metaDone = 0;
+    s3Qs.forEach((q) => {
+      if (buildMetaAnswer(q.id).complete) metaDone += 1;
+    });
+    const metaPct = Math.round((metaDone / s3Qs.length) * 100);
+
+    const totalPct = Math.round((compPct + npPct + metaPct) / 3);
+    pctEl.textContent = `${totalPct}%`;
+
+    if (ringEl) {
+      const circumference = 2 * Math.PI * 33;
+      const offset = circumference - (totalPct / 100) * circumference;
+      ringEl.setAttribute("stroke-dasharray", circumference.toFixed(2));
+      ringEl.setAttribute("stroke-dashoffset", offset.toFixed(2));
+    }
+
+    const pillars = [
+      {
+        title: "⚖️ Eje 1: Comparatives",
+        stat: `${compCount} / 3+ guardados`,
+        pct: compPct,
+        ready: compCount >= 3,
+        station: "station-1",
+        cta: compCount >= 3 ? "✅ Revisar Estación 1" : "Ir a Estación 1 →"
+      },
+      {
+        title: "📰 Eje 2: STEAM Newspaper",
+        stat: `${npBuilt.completedCount} / 5 partes`,
+        pct: npPct,
+        ready: npBuilt.completedCount === 5,
+        station: "station-2",
+        cta: npBuilt.completedCount === 5 ? "✅ Revisar Estación 2" : "Ir a Estación 2 →"
+      },
+      {
+        title: "💬 Eje 3: 5 Preguntas",
+        stat: `${metaDone} / 5 respondidas`,
+        pct: metaPct,
+        ready: metaDone === 5,
+        station: "station-3",
+        cta: metaDone === 5 ? "✅ Revisar Estación 3" : "Ir a Estación 3 →"
+      }
+    ];
+
+    grid.innerHTML = pillars
+      .map(
+        (p) => `
+        <article class="readiness-card ${p.ready ? "is-ready" : ""}">
+          <div>
+            <div class="readiness-top">
+              <h4>${escapeHtml(p.title)}</h4>
+              <span class="tab-badge ${p.ready ? "ready" : ""}">${escapeHtml(p.stat)}</span>
+            </div>
+            <div class="readiness-bar-track" style="margin-top: 8px;">
+              <div class="readiness-bar-fill" style="width: ${p.pct}%;"></div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" style="min-height: 44px;" data-st4-jump="${p.station}">
+            ${escapeHtml(p.cta)}
+          </button>
+        </article>`
+      )
+      .join("");
+
+    grid.querySelectorAll("[data-st4-jump]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.getAttribute("data-st4-jump");
+        const tab = document.querySelector(`.station-tab[data-station="${target}"]`);
+        if (tab) tab.click();
+      });
+    });
+  }
+
+  function renderStation4Trainer() {
+    const listEl = document.getElementById("st4-exercise-list");
+    const badgeEl = document.getElementById("st4-trainer-badge");
+    const progressEl = document.getElementById("st4-progress-text");
+    const recordEl = document.getElementById("st4-record-text");
+    const barEl = document.getElementById("st4-trainer-bar");
+    const demoNoticeEl = document.getElementById("st4-demo-notice");
+    const victoryEl = document.getElementById("st4-victory-banner");
+    const victoryTitle = document.getElementById("st4-victory-title");
+    const victorySub = document.getElementById("st4-victory-sub");
+    const upgradeBtn = document.getElementById("st4-upgrade-level2-btn");
+    const gotoAllBtn = document.getElementById("st4-goto-all-btn");
+    if (!listEl) return;
+
+    /* P1-2 fix: sincronizar siempre las clases activas con el estado actual */
+    document.querySelectorAll("[data-st4-level]").forEach((b) => {
+      b.classList.toggle("is-active", Number(b.getAttribute("data-st4-level")) === st4Level);
+    });
+    document.querySelectorAll("[data-st4-filter]").forEach((b) => {
+      b.classList.toggle("is-active", b.getAttribute("data-st4-filter") === st4Filter);
+    });
+
+    const { exercises, usedDemoPillars } = buildStation4Exercises();
+    const visible =
+      st4Filter === "all" ? exercises : exercises.filter((ex) => ex.category === st4Filter);
+
+    const validIds = new Set(exercises.map((e) => e.id));
+    st4SolvedIds.forEach((id) => {
+      if (!validIds.has(id)) st4SolvedIds.delete(id);
+    });
+
+    if (demoNoticeEl) {
+      if (usedDemoPillars.length > 0) {
+        demoNoticeEl.style.display = "block";
+        demoNoticeEl.innerHTML = `💡 <strong>Modo Práctica Mixta:</strong> Aún faltan respuestas guardadas en <strong>${escapeHtml(usedDemoPillars.join(", "))}</strong>, así que incluimos ejemplos modelo del proyecto STEAM para entrenar ya mismo. Al guardar tus respuestas allá, este reto usará automáticamente <strong>TUS</strong> frases.`;
+      } else {
+        demoNoticeEl.style.display = "none";
+      }
+    }
+
+    const solvedVisible = visible.filter((e) => st4SolvedIds.has(e.id)).length;
+    const totalVisible = visible.length;
+    const visiblePct = totalVisible > 0 ? Math.round((solvedVisible / totalVisible) * 100) : 0;
+
+    /* P0-2 fix: la mejor marca persistente SIEMPRE se mide sobre TODO el examen */
+    const solvedFull = exercises.filter((e) => st4SolvedIds.has(e.id)).length;
+    const totalFull = exercises.length;
+    const fullPct = totalFull > 0 ? Math.round((solvedFull / totalFull) * 100) : 0;
+
+    if (st4Level === 1 && fullPct > (state.practiceStats.level1Best || 0)) {
+      state.practiceStats.level1Best = fullPct;
+      window.AppStorage.save(state);
+    } else if (st4Level === 2 && fullPct > (state.practiceStats.level2Best || 0)) {
+      state.practiceStats.level2Best = fullPct;
+      window.AppStorage.save(state);
+    }
+
+    if (badgeEl) badgeEl.textContent = `${solvedVisible} de ${totalVisible} completados`;
+    if (progressEl) {
+      progressEl.textContent = `Nivel ${st4Level} — Progreso aquí: ${solvedVisible} de ${totalVisible} (${visiblePct}%) • Examen total: ${solvedFull}/${totalFull}`;
+    }
+    if (recordEl) {
+      recordEl.textContent = `Mejor marca (Examen Completo): Nivel 1 (${state.practiceStats.level1Best || 0}%) • Nivel 2 (${state.practiceStats.level2Best || 0}%)`;
+    }
+    if (barEl) {
+      barEl.style.width = `${visiblePct}%`;
+    }
+
+    /* Banner Victory Royale (completo vs mini-eje) */
+    const allVisibleSolved = totalVisible > 0 && solvedVisible === totalVisible;
+    const allFullSolved = totalFull > 0 && solvedFull === totalFull;
+    if (victoryEl) {
+      victoryEl.classList.toggle("is-visible", allVisibleSolved);
+      victoryEl.classList.toggle("is-mini-win", allVisibleSolved && !allFullSolved);
+      if (allVisibleSolved) {
+        if (allFullSolved) {
+          if (victoryTitle) {
+            victoryTitle.textContent =
+              st4Level === 2
+                ? "🏆 ¡VICTORY ROYALE NIVEL 2! ¡MIGUEL ESTÁ LISTO PARA EL MARTES!"
+                : "🎉 ¡EXAMEN COMPLETO NIVEL 1 AL 100%, MIGUEL ÁNGEL!";
+          }
+          if (victorySub) {
+            victorySub.textContent =
+              st4Level === 2
+                ? "Escribiste TODAS las palabras clave del examen sin banco de opciones. ¡Excelente trabajo!"
+                : "¡Dominaste todo el examen en Nivel 1! Ahora sube al Nivel 2 para escribirlas tú solo.";
+          }
+          if (upgradeBtn) upgradeBtn.style.display = st4Level === 1 ? "inline-flex" : "none";
+          if (gotoAllBtn) gotoAllBtn.style.display = "none";
+        } else {
+          if (victoryTitle) victoryTitle.textContent = "⭐ ¡Eje dominado al 100%, Miguel!";
+          if (victorySub) {
+            victorySub.textContent = `Llevas ${solvedFull} de ${totalFull} palabras del examen completo. Pasa a "Todo el Examen" para ganar el Victory Royale total.`;
+          }
+          if (upgradeBtn) upgradeBtn.style.display = "none";
+          if (gotoAllBtn) gotoAllBtn.style.display = "inline-flex";
+        }
+
+        if (!st4VictoryAnnounced) {
+          st4VictoryAnnounced = true;
+          showToast(allFullSolved ? "🏆 ¡Victory Royale 100% del examen completado!" : "⭐ ¡Eje completado! Sigue con Todo el Examen.");
+        }
+      } else {
+        st4VictoryAnnounced = false;
+      }
+    }
+
+    /* Renderizar tarjetas preservando borradores escritos en Nivel 2 (P0-3 fix) */
+    listEl.innerHTML = visible
+      .map((ex, idx) => {
+        const isSolved = st4SolvedIds.has(ex.id);
+        const tagCls = ex.category === "comp" ? "tag-comp" : ex.category === "news" ? "tag-news" : "tag-meta";
+        const hintDepth = st4HintDepth[ex.id] || 0;
+        const hintText = hintDepth > 0 ? buildProgressiveHint(ex.answer, hintDepth) : "";
+        const draftVal = st4TypedDrafts[ex.id] || "";
+
+        let blankHtml = "";
+        let interactionHtml = "";
+
+        if (isSolved) {
+          blankHtml = `<span class="blank-slot is-solved">✓ ${escapeHtml(ex.answer)}</span>`;
+          interactionHtml = `
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;">
+              <span class="exercise-feedback ok">✅ ¡Excelente! Palabra clave dominada.</span>
+              <button type="button" class="btn btn-audio btn-sm" style="min-height: 44px;" data-ex-speak="${escapeHtml(ex.fullEn)}">🔊 Escuchar oración completa</button>
+            </div>`;
+        } else if (st4Level === 1) {
+          blankHtml = `<span class="blank-slot">_____</span>`;
+          interactionHtml = `
+            <div class="exercise-choices-row">
+              ${ex.choices
+                .map(
+                  (ch) => `
+                  <button type="button" class="exercise-choice-btn" data-ex-pick="${ex.id}" data-ex-val="${escapeHtml(ch)}">
+                    ${escapeHtml(ch)}
+                  </button>`
+                )
+                .join("")}
+            </div>
+            <div class="exercise-feedback" id="ex-fb-${ex.id}">Toca la palabra correcta para completar el espacio:</div>`;
+        } else {
+          blankHtml = `
+            <span class="blank-input-wrap">
+              <input type="text" class="blank-type-input" id="ex-inp-${ex.id}" data-ex-input="${ex.id}" value="${escapeHtml(draftVal)}" autocomplete="off" spellcheck="false" maxlength="30" placeholder="Escribe aquí...">
+            </span>`;
+          interactionHtml = `
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+              <button type="button" class="btn btn-primary btn-sm" style="min-height: 44px;" data-ex-check="${ex.id}">✓ Comprobar</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="min-height: 44px;" data-ex-hint="${ex.id}">💡 Pista letra por letra</button>
+              ${hintText ? `<span style="font-family: ui-monospace, monospace; font-weight: 900; color: var(--lego-blue); background: var(--lego-blue-bg); padding: 6px 10px; border-radius: 8px;">${escapeHtml(hintText)}</span>` : ""}
+            </div>
+            <div class="exercise-feedback" id="ex-fb-${ex.id}">Escribe la palabra faltante (sin mirar el banco) y oprime Enter o Comprobar.</div>`;
+        }
+
+        return `
+          <article class="exercise-card ${isSolved ? "is-solved" : ""}" id="ex-card-${ex.id}">
+            <div class="exercise-top">
+              <span class="exercise-tag ${tagCls}">${idx + 1}. ${escapeHtml(ex.badge)}</span>
+              <span style="font-size: 0.78rem; font-weight: 800; color: ${isSolved ? "var(--lego-green)" : "var(--text-muted)"};">
+                ${isSolved ? "✅ Resuelto" : st4Level === 1 ? "Nivel 1 • Elegir" : "Nivel 2 • Escribir"}
+              </span>
+            </div>
+            <p class="exercise-context-q">${escapeHtml(ex.context)}</p>
+            <p class="exercise-sentence">${escapeHtml(ex.before)}${blankHtml}${escapeHtml(ex.after)}</p>
+            ${interactionHtml}
+          </article>`;
+      })
+      .join("");
+
+    /* Eventos Nivel 1 (Banco de Palabras) */
+    listEl.querySelectorAll("[data-ex-pick]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-ex-pick");
+        const val = btn.getAttribute("data-ex-val");
+        const ex = visible.find((item) => item.id === id);
+        if (!ex) return;
+
+        if (normalizeTypedAnswer(val) === normalizeTypedAnswer(ex.answer)) {
+          st4SolvedIds.add(id);
+          renderStation4Trainer();
+          window.AppSpeech.speak(ex.fullEn, showToast);
+        } else {
+          btn.classList.add("is-wrong");
+          const fb = document.getElementById(`ex-fb-${id}`);
+          if (fb) {
+            fb.className = "exercise-feedback retry";
+            fb.textContent = "💡 ¡Casi! Fíjate bien en la regla (Past Simple / -er / more / than / because) e intenta otra opción.";
+          }
+        }
+      });
+    });
+
+    /* Eventos Nivel 2 (Escritura Real + Conservación de Borradores + Enter + Pista) */
+    function checkTypedExercise(id) {
+      const ex = visible.find((item) => item.id === id);
+      const inp = document.getElementById(`ex-inp-${id}`);
+      const fb = document.getElementById(`ex-fb-${id}`);
+      if (!ex || !inp) return;
+
+      st4TypedDrafts[id] = inp.value;
+      const typed = normalizeTypedAnswer(inp.value);
+      const expected = normalizeTypedAnswer(ex.answer);
+      if (!typed) {
+        if (fb) {
+          fb.className = "exercise-feedback retry";
+          fb.textContent = "Escribe tu palabra primero o pulsa '💡 Pista letra por letra'.";
+        }
+        return;
+      }
+
+      if (typed === expected) {
+        st4SolvedIds.add(id);
+        delete st4TypedDrafts[id];
+        renderStation4Trainer();
+        window.AppSpeech.speak(ex.fullEn, showToast);
+        const nextInp = listEl.querySelector(".blank-type-input");
+        if (nextInp) nextInp.focus();
+      } else {
+        inp.classList.add("is-wrong");
+        if (fb) {
+          fb.className = "exercise-feedback retry";
+          fb.textContent = `💡 Revisa la ortografía (son ${ex.answer.length} caracteres). Si necesitas ayuda, pulsa '💡 Pista letra por letra'.`;
+        }
+      }
+    }
+
+    listEl.querySelectorAll("[data-ex-check]").forEach((btn) => {
+      btn.addEventListener("click", () => checkTypedExercise(btn.getAttribute("data-ex-check")));
+    });
+
+    listEl.querySelectorAll("[data-ex-input]").forEach((inp) => {
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          checkTypedExercise(inp.getAttribute("data-ex-input"));
+        }
+      });
+      inp.addEventListener("input", () => {
+        st4TypedDrafts[inp.getAttribute("data-ex-input")] = inp.value;
+        inp.classList.remove("is-wrong");
+      });
+    });
+
+    listEl.querySelectorAll("[data-ex-hint]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-ex-hint");
+        const ex = visible.find((item) => item.id === id);
+        if (!ex) return;
+        const currentDepth = st4HintDepth[id] || 0;
+        const maxLetters = ex.answer.replace(/[^a-z]/gi, "").length;
+        st4HintDepth[id] = Math.min(maxLetters, currentDepth + 1);
+        renderStation4Trainer();
+        const restoredInp = document.getElementById(`ex-inp-${id}`);
+        if (restoredInp) restoredInp.focus();
+      });
+    });
+
+    listEl.querySelectorAll("[data-ex-speak]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        window.AppSpeech.speak(btn.getAttribute("data-ex-speak"), showToast);
+      });
+    });
+  }
+
+  function renderStation4PrintSheets() {
+    const root = document.getElementById("print-sheets-root");
+    const sheet1 = document.getElementById("print-sheet-1");
+    const sheet2 = document.getElementById("print-sheet-2");
+    const hlBtn = document.getElementById("st4-print-hl-btn");
+    const pencilBtn = document.getElementById("st4-print-pencil-btn");
+    if (!root || !sheet1 || !sheet2) return;
+
+    document.querySelectorAll("[data-print-view]").forEach((b) => {
+      b.classList.toggle("is-active", b.getAttribute("data-print-view") === st4PrintView);
+    });
+
+    const showHl = state.practiceStats.printHighlights !== false;
+    const isPencil = Boolean(state.practiceStats.printPencilMode);
+
+    root.classList.toggle("print-sheets-plain", !showHl && !isPencil);
+    if (hlBtn) {
+      hlBtn.classList.toggle("is-on", showHl && !isPencil);
+      hlBtn.disabled = isPencil;
+      hlBtn.textContent = showHl ? "🖍️ Subrayar palabras clave: SÍ" : "🖍️ Subrayar palabras clave: NO";
+    }
+    if (pencilBtn) {
+      pencilBtn.classList.toggle("is-memory-on", isPencil);
+      pencilBtn.textContent = isPencil ? "✏️ Práctica con Lápiz: SÍ" : "✏️ Práctica con Lápiz: NO";
+    }
+
+    sheet1.classList.toggle("is-hidden-screen", st4PrintView === "sheet2");
+    sheet2.classList.toggle("is-hidden-screen", st4PrintView === "sheet1");
+
+    /* === HOJA 1: PERIÓDICO STEAM PERSONALIZADO (5 PARTES NUMERADAS) + COMPARATIVOS === */
+    const np = state.newspaper;
+    const s2 = window.APP_DATA.station2Data;
+    const builtNp = buildNewspaperTexts(np);
+    const activePhoto = s2.photoModes.find((p) => p.id === np.photoMode) || s2.photoModes[0];
+    const npIsDemo = builtNp.completedCount < 5;
+
+    const npName = builtNp.checks.name ? np.name.trim() : "THE BENEDICTINO STEAM TIMES";
+    const npTitle = builtNp.checks.title ? np.title.trim() : "Making a Maze and a Dream Catcher!";
+    const npWho = builtNp.checks.who
+      ? builtNp.whoSentencePlain
+      : "In this STEAM project, I participated with my classmates and my teachers.";
+    const npWhere = builtNp.checks.where
+      ? builtNp.whereSentencePlain
+      : "The project took place in our 3rd grade classroom at Colegio Benedictino de Santa María.";
+    const npWhat = builtNp.whatPlain
+      ? builtNp.whatPlain
+      : "First, we created the maze. Then, we made the dream catcher. We used cardboard, wool and thread, and colors. Finally, we learned how to build a maze and a dream catcher.";
+
+    const pastBlankTargets = [
+      "participated",
+      "took place",
+      "created",
+      "made",
+      "built",
+      "worked on",
+      "designed",
+      "painted",
+      "used",
+      "learned"
+    ];
+    const pastHighlightTargets = pastBlankTargets.concat(["First", "Then", "Finally"]);
+
+    const photoHtml =
+      activePhoto && activePhoto.src
+        ? `<img src="${escapeHtml(activePhoto.src)}" alt="Miguel Ángel" style="object-position: ${escapeHtml(activePhoto.objectPos || "center 25%")};">`
+        : `<div class="paper-sketch-box" style="padding: 8px;"><strong>✏️ Mi Dibujo</strong><span>Maze &amp; Dream Catcher</span></div>`;
+
+    const hasRealComps = (state.comparatives || []).length > 0;
+    const compList = hasRealComps
+      ? state.comparatives.slice(0, 4)
+      : [
+          { en: "The Maze was more difficult than the dream catcher.", es: "El laberinto fue más difícil que el atrapasueños. (Ejemplo guía)" },
+          { en: "The Dream Catcher was easier than the maze.", es: "El atrapasueños fue más fácil que el laberinto. (Ejemplo guía)" }
+        ];
+    const compKeywords = [
+      "more difficult than",
+      "more interesting than",
+      "more colorful than",
+      "more exciting than",
+      "more creative than",
+      "more fun than",
+      "easier than",
+      "harder than",
+      "faster than",
+      "longer than",
+      "better than",
+      "than"
+    ];
+
+    const sheet1DemoWarn =
+      npIsDemo || !hasRealComps
+        ? `<div class="print-demo-tag no-print">⚠️ Algunas secciones muestran texto ejemplo porque aún falta completar partes en Estación 1 o Estación 2. Personalízalas para que imprima 100% las respuestas de Miguel.</div>`
+        : "";
+
+    const modeBadge1 = isPencil
+      ? "Hoja 1 de 2 • Práctica con Lápiz (Completar)"
+      : "Hoja 1 de 2 • Modelo Periódico + Comparativos";
+
+    sheet1.innerHTML = `
+      <div class="print-sheet-header">
+        <span class="print-sheet-badge">${modeBadge1}</span>
+        <span>Miguel Ángel • 3° Primaria • Colegio Benedictino de Santa María</span>
+      </div>
+      ${sheet1DemoWarn}
+
+      <div class="print-news-box">
+        <div style="text-align: center;"><span class="print-part-pill">1. NAME</span></div>
+        <h3 class="print-news-masthead">${escapeHtml(npName)}</h3>
+        <span class="print-part-pill">2. TITLE</span>
+        <div class="print-news-title">${escapeHtml(npTitle)}</div>
+        <div class="print-news-byline">By Miguel Ángel • 3rd Grade STEAM Project • Term 3</div>
+
+        <div class="print-news-grid">
+          <div class="print-news-photo">${photoHtml}</div>
+          <div>
+            <div class="print-news-section-tag">3. Who Participated in the Project</div>
+            <p class="print-news-copy">${formatPrintKeywords(npWho, isPencil ? pastBlankTargets : pastHighlightTargets, isPencil)}</p>
+            <div class="print-news-section-tag">4. Where Did the Project Take Place</div>
+            <p class="print-news-copy" style="margin-bottom: 0;">${formatPrintKeywords(npWhere, isPencil ? pastBlankTargets : pastHighlightTargets, isPencil)}</p>
+          </div>
+        </div>
+
+        <div class="print-news-section-tag" style="border-top: 1.5px solid #1c1917; padding-top: 7px;">
+          5. What Did You Do During This Project (Past Simple)
+        </div>
+        <p class="print-news-copy" style="margin-bottom: 0;">${formatPrintKeywords(npWhat, isPencil ? pastBlankTargets : pastHighlightTargets, isPencil)}</p>
+      </div>
+
+      <div>
+        <div class="print-news-section-tag" style="color: #0f172a; font-size: 0.76rem;">
+          ⚖️ Mis Oraciones Comparativas (Comparatives: -er / more + than)
+        </div>
+        <ol class="print-comp-list">
+          ${compList
+            .map(
+              (c) => `
+              <li>
+                <div>${formatPrintKeywords(c.en, compKeywords, isPencil)}</div>
+                ${c.es ? `<div class="print-qa-es">${escapeHtml(c.es)}</div>` : ""}
+              </li>`
+            )
+            .join("")}
+        </ol>
+      </div>`;
+
+    /* === HOJA 2: GUÍA DE BOLSILLO (5 PREGUNTAS DE LA MISS + CHECKLIST MARTES) === */
+    const s3Qs = window.APP_DATA.station3Data.officialQuestions;
+    const qaHighlightWords = ["Yes, it was", "No, it wasn't", "because", "learned", "easier"];
+    const qaPencilWords = ["because", "learned", "easier"];
+    const qHighlightWords = ["more difficult than", "favorite task", "did you learn", "most boring", "easier", "why"];
+
+    const qaFallback = {
+      q1: { en: "My favorite task was making the dream catcher because it was fun and creative.", es: "(Completa tu opinión en Estación 3)" },
+      q2: { en: "Yes, it was, because the maze had many small parts.", es: "(Completa tu opinión en Estación 3)" },
+      q3: { en: "Making the dream catcher was easier for me because I enjoyed making it step by step.", es: "(Completa tu opinión en Estación 3)" },
+      q4: { en: "The most boring part was waiting for the glue to dry because it was slow.", es: "(Completa tu opinión en Estación 3)" },
+      q5: { en: "I learned how to make a maze and a dream catcher.", es: "(Completa tu opinión en Estación 3)" }
+    };
+
+    const modeBadge2 = isPencil
+      ? "Hoja 2 de 2 • Práctica con Lápiz (5 Preguntas)"
+      : "Hoja 2 de 2 • Guía de Bolsillo (5 Preguntas)";
+
+    sheet2.innerHTML = `
+      <div class="print-sheet-header">
+        <span class="print-sheet-badge">${modeBadge2}</span>
+        <span>Repaso Lunes en la Noche • Examen Martes 8:00–10:00 a.m.</span>
+      </div>
+
+      <div class="print-qa-list">
+        ${s3Qs
+          .map((q, idx) => {
+            const ans = buildMetaAnswer(q.id);
+            const enText = ans.complete ? ans.plainEn : qaFallback[q.id].en;
+            const esText = ans.complete ? ans.esMeaning : qaFallback[q.id].es;
+            return `
+              <div class="print-qa-item">
+                <p class="print-qa-q">${idx + 1}. ${formatPrintKeywords(q.questionEn, qHighlightWords, false)}</p>
+                <p class="print-qa-a">→ ${formatPrintKeywords(enText, isPencil ? qaPencilWords : qaHighlightWords, isPencil)}</p>
+                <p class="print-qa-es">${escapeHtml(esText)}</p>
+              </div>`;
+          })
+          .join("")}
+      </div>
+
+      <div class="print-checklist-box">
+        <h4>✅ Checklist de Miguel Ángel para el Martes (8:00 a 10:00 a.m.)</h4>
+        <div class="print-checklist-grid">
+          <span>☐ 1. Escribir <strong>NAME</strong> y <strong>TITLE</strong> arriba del periódico.</span>
+          <span>☐ 2. Incluir <strong>WHO</strong> (participated) y <strong>WHERE</strong> (took place).</span>
+          <span>☐ 3. Contar <strong>WHAT</strong> en Past Simple (<code>created, made, used, learned</code>).</span>
+          <span>☐ 4. Usar <strong>-er</strong> (cortos) o <strong>more</strong> (largos) + <strong>than</strong>.</span>
+          <span>☐ 5. Cuando la pregunta diga <strong>Why?</strong>, responder con <strong>because</strong>.</span>
+          <span>☐ 6. Respirar profundo, leer la palabra llave y confiar en ti. ¡Tú puedes!</span>
+        </div>
+      </div>`;
+  }
+
+  function renderStation4All() {
+    renderStation4Readiness();
+    renderStation4Trainer();
+    renderStation4PrintSheets();
+  }
+
+  function initStation4() {
+    renderStation4All();
+
+    document.querySelectorAll("[data-st4-level]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const nextLevel = Number(btn.getAttribute("data-st4-level"));
+        if (nextLevel === st4Level) return;
+        st4Level = nextLevel;
+        st4SolvedIds = new Set();
+        st4HintDepth = {};
+        st4TypedDrafts = {};
+        st4VictoryAnnounced = false;
+        renderStation4Trainer();
+      });
+    });
+
+    document.querySelectorAll("[data-st4-filter]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        st4Filter = btn.getAttribute("data-st4-filter") || "all";
+        st4VictoryAnnounced = false;
+        renderStation4Trainer();
+      });
+    });
+
+    const resetRunBtn = document.getElementById("st4-reset-run-btn");
+    if (resetRunBtn) {
+      resetRunBtn.addEventListener("click", () => {
+        st4SolvedIds = new Set();
+        st4HintDepth = {};
+        st4TypedDrafts = {};
+        st4VictoryAnnounced = false;
+        renderStation4Trainer();
+        showToast("🔄 Reto reiniciado. ¡Vamos otra vez Miguel!");
+      });
+    }
+
+    const victoryAudioBtn = document.getElementById("st4-victory-audio-btn");
+    if (victoryAudioBtn) {
+      victoryAudioBtn.addEventListener("click", () => {
+        window.AppSpeech.speak(
+          "Amazing job Miguel Angel! You completed the STEAM challenge! You are ready for Tuesday!",
+          showToast
+        );
+      });
+    }
+
+    const gotoAllBtn = document.getElementById("st4-goto-all-btn");
+    if (gotoAllBtn) {
+      gotoAllBtn.addEventListener("click", () => {
+        st4Filter = "all";
+        st4VictoryAnnounced = false;
+        renderStation4Trainer();
+      });
+    }
+
+    const upgradeBtn = document.getElementById("st4-upgrade-level2-btn");
+    if (upgradeBtn) {
+      upgradeBtn.addEventListener("click", () => {
+        const lvl2Btn = document.querySelector(`[data-st4-level="2"]`);
+        if (lvl2Btn) lvl2Btn.click();
+      });
+    }
+
+    document.querySelectorAll("[data-print-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        st4PrintView = btn.getAttribute("data-print-view") || "both";
+        renderStation4PrintSheets();
+      });
+    });
+
+    const printHlBtn = document.getElementById("st4-print-hl-btn");
+    if (printHlBtn) {
+      printHlBtn.addEventListener("click", () => {
+        if (state.practiceStats.printPencilMode) return;
+        state.practiceStats.printHighlights = !(state.practiceStats.printHighlights !== false);
+        window.AppStorage.save(state);
+        renderStation4PrintSheets();
+      });
+    }
+
+    const printPencilBtn = document.getElementById("st4-print-pencil-btn");
+    if (printPencilBtn) {
+      printPencilBtn.addEventListener("click", () => {
+        state.practiceStats.printPencilMode = !state.practiceStats.printPencilMode;
+        window.AppStorage.save(state);
+        renderStation4PrintSheets();
+        showToast(
+          state.practiceStats.printPencilMode
+            ? "✏️ Modo Práctica con Lápiz activado: las palabras clave salen en blanco para escribir a mano."
+            : "📖 Modo Guía de Repaso restaurado."
+        );
+      });
+    }
+
+    const printBtn = document.getElementById("st4-print-btn");
+    if (printBtn) {
+      printBtn.addEventListener("click", () => {
+        renderStation4PrintSheets();
+        window.print();
+      });
+    }
+
+    window.addEventListener("beforeprint", () => {
+      renderStation4PrintSheets();
+    });
+  }
+
   /* --- Respaldo y Reinicio --- */
   function initStorageActions() {
     const exportBtn = document.getElementById("export-json-btn");
@@ -3275,6 +4271,13 @@
         st3RehearsalMode = false;
         st3RevealedWarmups = new Set();
         st3RevealedSummary = new Set();
+        st4Level = 1;
+        st4Filter = "all";
+        st4PrintView = "both";
+        st4SolvedIds = new Set();
+        st4HintDepth = {};
+        st4TypedDrafts = {};
+        st4VictoryAnnounced = false;
         renderBank();
         renderStation0Builder();
         renderStation1Quiz();
@@ -3285,6 +4288,7 @@
         renderStation2Quiz();
         renderStation2Newspaper();
         renderStation3All();
+        renderStation4All();
         showToast("Datos reiniciados correctamente.");
       });
     }
@@ -3302,6 +4306,7 @@
     initStation1();
     initStation2();
     initStation3();
+    initStation4();
     initStorageActions();
   });
 })();

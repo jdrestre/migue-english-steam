@@ -46,7 +46,12 @@ window.AppStorage = (function () {
     comparatives: [],
     newspaper: DEFAULT_NEWSPAPER,
     metacognition: DEFAULT_METACOGNITION,
-    practiceStats: { completed: 0 }
+    practiceStats: {
+      level1Best: 0,
+      level2Best: 0,
+      printHighlights: true,
+      printPencilMode: false
+    }
   };
 
   function clone(obj) {
@@ -60,6 +65,7 @@ window.AppStorage = (function () {
       const parsed = JSON.parse(raw);
       const merged = Object.assign(clone(DEFAULT_STATE), parsed);
       merged.newspaper = Object.assign(clone(DEFAULT_NEWSPAPER), parsed.newspaper || {});
+      merged.practiceStats = Object.assign(clone(DEFAULT_STATE.practiceStats), parsed.practiceStats || {});
       const incomingMeta = parsed.metacognition || {};
       merged.metacognition = clone(DEFAULT_METACOGNITION);
       ["q1", "q2", "q3", "q4", "q5"].forEach((k) => {

@@ -3033,6 +3033,758 @@ body.is-speaking .eq-bars span:nth-child(5) { animation-delay: 0.15s; }
   }
 }
 
+/* ==================== ESTACIÓN 4: RETO MARTES + IMPRESIÓN LIMPIA (2 HOJAS) ==================== */
+
+/* Trophy Readiness Banner */
+.arena-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #064e3b 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
+}
+
+.arena-avatar-ring {
+  width: 78px;
+  height: 78px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2.5px solid #fbbf24;
+  box-shadow: 0 6px 18px rgba(251, 191, 36, 0.28);
+  flex-shrink: 0;
+}
+
+.arena-avatar-ring img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 14%;
+  display: block;
+}
+
+.arena-hero h2 {
+  margin: 0 0 4px;
+  font-size: 1.32rem;
+  color: #ffffff;
+}
+
+.arena-hero p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #d1fae5;
+}
+
+.arena-meter-box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 146px;
+}
+
+.readiness-ring-wrap {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  display: grid;
+  place-items: center;
+}
+
+.readiness-ring-svg {
+  width: 78px;
+  height: 78px;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 7;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: url(#arenaRingGrad);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.arena-meter-pct {
+  position: absolute;
+  font-size: 1.18rem;
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.arena-meter-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+/* 3-Pillar Readiness Grid */
+.readiness-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.readiness-card {
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--surface-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.readiness-card.is-ready {
+  border-color: var(--lego-green);
+  background: var(--lego-green-bg);
+}
+
+.readiness-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.readiness-top .tab-badge {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.readiness-card h4 {
+  margin: 0;
+  font-size: 0.96rem;
+}
+
+.readiness-bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.readiness-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1d4ed8 0%, #059669 100%);
+  transition: width 0.35s ease;
+}
+
+/* Trainer Mode Controls */
+.trainer-controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.level-segmented {
+  display: inline-flex;
+  background: #e2e8f0;
+  padding: 4px;
+  border-radius: 14px;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.level-seg-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 9px 14px;
+  min-height: 44px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.level-seg-btn.is-active {
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.22);
+}
+
+.filter-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.filter-pill-btn {
+  appearance: none;
+  border: 2px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 14px;
+  min-height: 44px;
+  font-family: inherit;
+  font-size: 0.83rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.filter-pill-btn:hover {
+  border-color: var(--lego-blue);
+}
+
+.filter-pill-btn.is-active {
+  background: var(--lego-blue);
+  border-color: var(--lego-blue);
+  color: #ffffff;
+}
+
+/* Active Retrieval Exercise Cards */
+.trainer-progress-strip {
+  display: grid;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin-bottom: 14px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.trainer-progress-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.victory-banner.is-mini-win {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+  box-shadow: 0 10px 24px rgba(29, 78, 216, 0.22);
+}
+
+.victory-banner.is-mini-win p {
+  color: #dbeafe;
+}
+
+.demo-source-notice {
+  background: #fef3c7;
+  border: 1.5px solid #fcd34d;
+  color: #78350f;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.victory-banner {
+  display: none;
+  background: linear-gradient(135deg, #064e3b 0%, #047857 60%, #059669 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  box-shadow: 0 12px 28px rgba(4, 120, 87, 0.25);
+  animation: fadeIn 0.25s ease;
+}
+
+.victory-banner.is-visible {
+  display: flex;
+}
+
+.victory-banner h3 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+}
+
+.victory-banner p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #d1fae5;
+}
+
+.exercise-list {
+  display: grid;
+  gap: 12px;
+}
+
+.exercise-card {
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 15px 16px;
+  background: #ffffff;
+  display: grid;
+  gap: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.exercise-card.is-solved {
+  border-color: var(--lego-green);
+  background: var(--lego-green-bg);
+}
+
+.exercise-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.exercise-tag {
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.tag-comp { background: var(--lego-blue-bg); color: var(--lego-blue); }
+.tag-news { background: var(--lego-orange-bg); color: var(--lego-orange); }
+.tag-meta { background: var(--lego-purple-bg); color: var(--lego-purple); }
+
+.exercise-context-q {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.exercise-sentence {
+  margin: 0;
+  font-size: 1.06rem;
+  font-weight: 700;
+  line-height: 1.75;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.blank-slot {
+  display: inline-block;
+  min-width: 112px;
+  padding: 2px 10px;
+  margin: 0 3px;
+  border-radius: 8px;
+  border: 2px dashed #c2410c;
+  background: #fff7ed;
+  color: #9a3412;
+  font-weight: 900;
+  text-align: center;
+}
+
+.blank-slot.is-solved {
+  border-style: solid;
+  border-color: #047857;
+  background: #047857;
+  color: #ffffff;
+  animation: popVerb 0.25s ease;
+}
+
+.blank-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0 4px;
+  vertical-align: middle;
+}
+
+.blank-type-input {
+  width: 180px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 2px solid #c2410c;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: var(--text);
+  background: #fffbeb;
+}
+
+.blank-type-input:focus {
+  outline: none;
+  border-color: var(--lego-blue);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.16);
+}
+
+.blank-type-input.is-wrong {
+  border-color: var(--danger);
+  background: #fff1f2;
+}
+
+.exercise-choices-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exercise-choice-btn {
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 14px;
+  min-height: 44px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.exercise-choice-btn:hover:not(:disabled) {
+  border-color: var(--lego-blue);
+  background: var(--lego-blue-bg);
+}
+
+.exercise-choice-btn.is-wrong {
+  border-color: var(--lego-orange);
+  background: var(--lego-orange-bg);
+  color: var(--lego-orange);
+}
+
+.exercise-feedback {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.exercise-feedback.ok { color: var(--lego-green); }
+.exercise-feedback.retry { color: var(--lego-orange); }
+
+/* ==================== ESTUDIO DE IMPRESIÓN (2 HOJAS LIMPIAS) ==================== */
+.print-studio-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.print-preview-stage {
+  display: grid;
+  gap: 20px;
+}
+
+.print-sheet {
+  background: #ffffff;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 24px 26px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  color: #111827;
+}
+
+.print-sheet.is-hidden-screen {
+  display: none;
+}
+
+.print-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #334155;
+}
+
+.print-sheet-badge {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+/* Sheet 1: Compact Broadsheet + Comparatives */
+.print-news-box {
+  border: 1.5px solid #334155;
+  background: #faf6ee;
+  padding: 16px 18px;
+  border-radius: 6px;
+  font-family: Georgia, "Times New Roman", serif;
+  margin-bottom: 16px;
+}
+
+.print-news-masthead {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 3px double #1c1917;
+  padding-bottom: 6px;
+  margin: 0 0 10px;
+}
+
+.print-news-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  margin: 0 0 4px;
+}
+
+.print-news-byline {
+  font-family: system-ui, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #9a3412;
+  margin-bottom: 10px;
+}
+
+.print-news-grid {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 10px;
+}
+
+.print-news-photo {
+  width: 148px;
+  height: 174px;
+  border: 1px solid #94a3b8;
+  background: #ffffff;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.print-news-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.print-news-section-tag {
+  font-family: system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1d4ed8;
+  margin-bottom: 2px;
+}
+
+.print-news-copy {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.print-comp-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  font-size: 0.94rem;
+}
+
+.print-hl-word {
+  font-weight: 900;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  color: #9a3412;
+}
+
+.print-sheets-plain .print-hl-word {
+  font-weight: inherit;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Pencil Practice Mode (Write-in Lines for Monday Table Practice!) */
+.print-pencil-blank {
+  display: inline-block;
+  min-width: 82px;
+  border-bottom: 2px solid #0f172a;
+  color: transparent;
+  user-select: none;
+  margin: 0 3px;
+  line-height: 1.1;
+  background: #fefce8;
+  border-radius: 3px 3px 0 0;
+}
+
+.print-demo-tag {
+  background: #fef3c7;
+  border: 1px dashed #b45309;
+  color: #78350f;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: system-ui, sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.print-part-pill {
+  display: inline-block;
+  font-family: system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-bottom: 3px;
+}
+
+/* Sheet 2: Pocket 5 Q&A Guide + Tuesday Checklist */
+.print-qa-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.print-qa-item {
+  border: 1.5px solid #cbd5e1;
+  border-left: 5px solid #1d4ed8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f8fafc;
+}
+
+.print-qa-q {
+  margin: 0 0 4px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.print-qa-a {
+  margin: 0 0 3px;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #047857;
+}
+
+.print-qa-es {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #475569;
+  font-style: italic;
+}
+
+.print-checklist-box {
+  border: 1.5px dashed #0f172a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  font-size: 0.82rem;
+}
+
+.print-checklist-box h4 {
+  margin: 0 0 6px;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+}
+
+.print-checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 14px;
+}
+
+@media (max-width: 900px) {
+  .arena-hero {
+    grid-template-columns: auto 1fr;
+  }
+
+  .arena-meter-box {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    gap: 14px;
+    justify-content: center;
+  }
+
+  .readiness-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .arena-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+    justify-items: center;
+    padding: 16px 14px;
+    gap: 12px;
+  }
+
+  .arena-meter-box {
+    width: 100%;
+  }
+
+  .print-sheet {
+    padding: 14px 12px;
+  }
+
+  .print-news-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .print-news-photo {
+    width: 100%;
+    height: 210px;
+  }
+
+  .print-checklist-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blank-type-input {
+    width: 100%;
+  }
+}
+
 /* Upcoming Station Placeholder */
 .upcoming-card {
   text-align: center;
@@ -3112,17 +3864,150 @@ body.is-speaking .eq-bars span:nth-child(5) { animation-delay: 0.15s; }
 }
 
 @media print {
+  @page {
+    size: letter portrait;
+    margin: 10mm 11mm;
+  }
+
   .app-header,
   .station-nav-wrap,
-  .no-print {
+  .no-print,
+  #station-0,
+  #station-1,
+  #station-2,
+  #station-3,
+  .toast {
     display: none !important;
   }
+
   body {
-    background: #ffffff;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt;
+    line-height: 1.38;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-  .card {
-    box-shadow: none;
-    border: 1px solid #cbd5e1;
+
+  main.container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #station-4.station-panel {
+    display: block !important;
+  }
+
+  #print-studio-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-preview-stage {
+    display: block !important;
+  }
+
+  .print-sheet,
+  .print-sheet.is-hidden-screen {
+    display: block !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  #print-sheet-1 {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .print-sheet-header {
+    padding-bottom: 5px;
+    margin-bottom: 9px;
+    font-size: 7.5pt;
+  }
+
+  .print-news-box {
+    padding: 11px 14px;
+    margin-bottom: 10px;
+  }
+
+  .print-news-masthead {
+    font-size: 14pt;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+  }
+
+  .print-news-title {
+    font-size: 12pt;
+  }
+
+  .print-news-grid {
+    grid-template-columns: 122px 1fr;
+    gap: 10px;
+    margin-bottom: 7px;
+  }
+
+  .print-news-photo {
+    width: 122px;
+    height: 144px;
+  }
+
+  .print-news-copy {
+    font-size: 9.5pt;
+    line-height: 1.38;
+    margin-bottom: 6px;
+  }
+
+  .print-comp-list {
+    gap: 4px;
+    font-size: 9.4pt;
+    margin-top: 5px;
+  }
+
+  .print-qa-list {
+    gap: 6px;
+    margin-bottom: 9px;
+  }
+
+  .print-qa-item {
+    padding: 7px 10px;
+  }
+
+  .print-qa-q,
+  .print-qa-a {
+    font-size: 9.4pt;
+    line-height: 1.32;
+    margin-bottom: 2px;
+  }
+
+  .print-qa-es {
+    font-size: 8pt;
+    line-height: 1.25;
+  }
+
+  .print-checklist-box {
+    padding: 7px 10px;
+    font-size: 8.2pt;
+  }
+
+  .print-checklist-box h4 {
+    font-size: 8.5pt;
+    margin-bottom: 4px;
+  }
+
+  .print-pencil-blank {
+    background: transparent;
+  }
+
+  .print-news-box,
+  .print-qa-item,
+  .print-checklist-box {
     break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
