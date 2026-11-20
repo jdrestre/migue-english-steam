@@ -65,22 +65,24 @@
   }
 
   /* --- Control de Velocidad de Audio --- */
+  function syncSpeechButtonsFromState() {
+    const slowBtn = document.getElementById("rate-slow-btn");
+    const normalBtn = document.getElementById("rate-normal-btn");
+    const isSlow = window.AppSpeech.getRate() < 0.9;
+    if (slowBtn) slowBtn.classList.toggle("active", isSlow);
+    if (normalBtn) normalBtn.classList.toggle("active", !isSlow);
+  }
+
   function initSpeechControls() {
     const slowBtn = document.getElementById("rate-slow-btn");
     const normalBtn = document.getElementById("rate-normal-btn");
-
-    function updateButtons() {
-      const isSlow = window.AppSpeech.getRate() < 0.9;
-      if (slowBtn) slowBtn.classList.toggle("active", isSlow);
-      if (normalBtn) normalBtn.classList.toggle("active", !isSlow);
-    }
 
     if (slowBtn) {
       slowBtn.addEventListener("click", () => {
         window.AppSpeech.setRate(0.75);
         state.speechRate = 0.75;
         window.AppStorage.save(state);
-        updateButtons();
+        syncSpeechButtonsFromState();
         showToast("Voz en inglés: modo despacio (0.75x)");
       });
     }
@@ -90,12 +92,12 @@
         window.AppSpeech.setRate(1.0);
         state.speechRate = 1.0;
         window.AppStorage.save(state);
-        updateButtons();
+        syncSpeechButtonsFromState();
         showToast("Voz en inglés: modo normal (1.0x)");
       });
     }
 
-    updateButtons();
+    syncSpeechButtonsFromState();
 
     const welcomeAudioBtn = document.getElementById("welcome-audio-btn");
     if (welcomeAudioBtn) {
@@ -4235,63 +4237,699 @@
     const printBtn = document.getElementById("st4-print-btn");
     if (printBtn) {
       printBtn.addEventListener("click", () => {
+        document.body.classList.remove("is-printing-parents-guide");
         renderStation4PrintSheets();
         window.print();
       });
     }
 
-    window.addEventListener("beforeprint", () => {
-      renderStation4PrintSheets();
+    function syncPrintModeBeforePrint() {
+      if (activeModalEl && activeModalEl.id === "parents-guide-modal") {
+        document.body.classList.add("is-printing-parents-guide");
+      } else {
+        document.body.classList.remove("is-printing-parents-guide");
+        renderStation4PrintSheets();
+      }
+    }
+
+    function clearPrintModeAfterPrint() {
+      document.body.classList.remove("is-printing-parents-guide");
+    }
+
+    window.addEventListener("beforeprint", syncPrintModeBeforePrint);
+    window.addEventListener("afterprint", clearPrintModeAfterPrint);
+
+    if (typeof window.matchMedia === "function") {
+      const printMql = window.matchMedia("print");
+      const handlePrintMediaChange = (evt) => {
+        if (evt.matches) {
+          syncPrintModeBeforePrint();
+        } else {
+          clearPrintModeAfterPrint();
+        }
+      };
+      if (typeof printMql.addEventListener === "function") {
+        printMql.addEventListener("change", handlePrintMediaChange);
+      } else if (typeof printMql.addListener === "function") {
+        printMql.addListener(handlePrintMediaChange);
+      }
+    }
+  }
+
+  /* --- Gestor Accesible de Modales (Focus Trap + Inert + Scroll Reset + Escape) --- */
+  let activeModalEl = null;
+  let lastFocusedBeforeModal = null;
+
+  function setBackgroundLandmarksInert(isInert) {
+    document.querySelectorAll("body > header, body > nav, body > main, body > footer").forEach((el) => {
+      if (isInert) {
+        el.setAttribute("aria-hidden", "true");
+        el.inert = true;
+      } else {
+        el.removeAttribute("aria-hidden");
+        el.inert = false;
+      }
     });
   }
 
-  /* --- Respaldo y Reinicio --- */
+  function getFocusableElements(container) {
+    return Array.from(
+      container.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter((el) => el.offsetParent !== null);
+  }
+
+  function openModal(modalEl, triggerEl) {
+    if (!modalEl) return;
+    if (activeModalEl && activeModalEl !== modalEl) {
+      closeModal(activeModalEl, false);
+    }
+    lastFocusedBeforeModal = triggerEl || document.activeElement;
+    modalEl.hidden = false;
+    activeModalEl = modalEl;
+    document.body.classList.add("modal-open");
+    setBackgroundLandmarksInert(true);
+    const scrollBody = modalEl.querySelector(".modal-body");
+    if (scrollBody) scrollBody.scrollTop = 0;
+    const focusables = getFocusableElements(modalEl);
+    if (focusables.length > 0) {
+      focusables[0].focus();
+    }
+  }
+
+  function closeModal(modalEl, restoreFocus) {
+    const target = modalEl || activeModalEl;
+    if (!target) return;
+    target.hidden = true;
+    if (activeModalEl === target) {
+      activeModalEl = null;
+      document.body.classList.remove("modal-open");
+      setBackgroundLandmarksInert(false);
+    }
+    if (restoreFocus !== false && lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === "function") {
+      lastFocusedBeforeModal.focus();
+      lastFocusedBeforeModal = null;
+    }
+  }
+
+  document.addEventListener("keydown", (evt) => {
+    if (!activeModalEl) return;
+    if (evt.key === "Escape") {
+      evt.preventDefault();
+      closeModal(activeModalEl, true);
+      return;
+    }
+    if (evt.key === "Tab") {
+      const focusables = getFocusableElements(activeModalEl);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (!activeModalEl.contains(document.activeElement)) {
+        evt.preventDefault();
+        (evt.shiftKey ? last : first).focus();
+        return;
+      }
+      if (evt.shiftKey && document.activeElement === first) {
+        evt.preventDefault();
+        last.focus();
+      } else if (!evt.shiftKey && document.activeElement === last) {
+        evt.preventDefault();
+        first.focus();
+      }
+    }
+  });
+
+  /* --- Guía Editorial para Padres (Modal + Impresión 1 Hoja + Ventana Independiente) --- */
+  function buildParentsGuideStandaloneHtml() {
+    const sheetEl = document.getElementById("pg-printable-sheet");
+    if (!sheetEl) return "";
+
+    const cloneNode = sheetEl.cloneNode(true);
+    cloneNode.querySelectorAll(".no-print").forEach((el) => {
+      if (el.classList.contains("pg-email-details") || el.classList.contains("pg-mobile-flow")) {
+        el.classList.remove("no-print");
+      } else {
+        el.remove();
+      }
+    });
+
+    return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guía para Padres — Misión STEAM English A1</title>
+  <style>
+    :root { --text:#0f172a; --muted:#475569; --border:#e2e8f0; --blue:#1d4ed8; --orange:#c2410c; --green:#047857; --purple:#6d28d9; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 18px 40px; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f1f5f9; color: var(--text); line-height: 1.48; }
+    .win-bar { max-width: 900px; margin: 0 auto 14px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: #fff; padding: 12px 18px; border-radius: 14px; box-shadow: 0 8px 22px rgba(15,23,42,.18); }
+    .win-bar strong { font-size: 0.92rem; }
+    .win-bar button { border: none; border-radius: 9px; padding: 8px 14px; font-weight: 800; font-size: 0.84rem; cursor: pointer; background: #fbbf24; color: #0f172a; }
+    .pg-sheet { max-width: 900px; margin: 0 auto; background: #fff; border: 1px solid #dbe4f0; border-radius: 18px; padding: 26px 28px; box-shadow: 0 12px 30px rgba(15,23,42,.08); }
+    code { font-family: ui-monospace, Menlo, Consolas, monospace; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 5px; padding: 1px 5px; font-size: 0.86em; font-weight: 800; white-space: nowrap; }
+    .pg-masthead { padding-bottom: 14px; margin-bottom: 18px; border-bottom: 2px solid #0f172a; }
+    .pg-masthead-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .pg-badge-pill { background: #eff6ff; border: 1px solid #bfdbfe; color: var(--blue); border-radius: 999px; padding: 4px 11px; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .pg-date-chip { background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; border-radius: 999px; padding: 4px 11px; font-size: 0.78rem; font-weight: 800; }
+    .pg-title { margin: 0 0 5px; font-size: 1.48rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1.2; }
+    .pg-lead { margin: 0; color: #334155; font-size: 0.95rem; }
+    .pg-section { margin-bottom: 20px; }
+    .pg-section:last-child { margin-bottom: 0; }
+    .pg-sec-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+    .pg-sec-num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: #0f172a; color: #fbbf24; font-size: 0.74rem; font-weight: 900; flex-shrink: 0; }
+    .pg-sec-title { margin: 0; font-size: 1.02rem; font-weight: 800; }
+    .pg-svg-frame { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 12px; }
+    .pg-flow-svg { display: block; width: 100%; height: auto; }
+    .pg-mobile-flow { display: none; margin-bottom: 12px; }
+    .pg-mflow-root { background: #0f172a; color: #fff; border-radius: 11px; padding: 9px 11px; text-align: center; margin-bottom: 8px; }
+    .pg-mflow-root strong { display: block; font-size: 0.72rem; color: #fbbf24; }
+    .pg-mflow-root span { display: block; font-size: 0.75rem; color: #e2e8f0; margin-top: 2px; }
+    .pg-mflow-spine { display: grid; gap: 6px; padding-left: 14px; border-left: 2px solid #94a3b8; margin-left: 12px; }
+    .pg-mflow-node { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 11px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.8rem; }
+    .pg-mflow-node::before { content: ""; position: absolute; left: -15px; top: 50%; width: 13px; height: 2px; background: #94a3b8; }
+    .pg-mflow-node em { font-style: normal; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+    .pg-mflow-blue { background: #eff6ff; border-color: #93c5fd; } .pg-mflow-blue em { color: var(--blue); }
+    .pg-mflow-orange { background: #fff7ed; border-color: #fdba74; } .pg-mflow-orange em { color: var(--orange); }
+    .pg-mflow-green { background: #ecfdf5; border-color: #6ee7b7; } .pg-mflow-green em { color: var(--green); }
+    .pg-mflow-purple { background: #f5f3ff; border-color: #c4b5fd; } .pg-mflow-purple em { color: var(--purple); }
+    .pg-mflow-amber { background: #fef3c7; border-color: #fcd34d; } .pg-mflow-amber em { color: #92400e; }
+    .pg-station-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+    .pg-st-card { border: 1px solid var(--border); border-left-width: 5px; border-radius: 12px; padding: 12px 14px; background: #fff; }
+    .pg-st-blue { border-left-color: var(--blue); background: linear-gradient(90deg, rgba(239,246,255,.55) 0%, #fff 35%); }
+    .pg-st-orange { border-left-color: var(--orange); background: linear-gradient(90deg, rgba(255,247,237,.6) 0%, #fff 35%); }
+    .pg-st-green { border-left-color: var(--green); background: linear-gradient(90deg, rgba(236,253,245,.6) 0%, #fff 35%); }
+    .pg-st-purple { border-left-color: var(--purple); background: linear-gradient(90deg, rgba(245,243,255,.6) 0%, #fff 35%); }
+    .pg-st-amber { border-left-color: #d97706; background: linear-gradient(90deg, rgba(254,243,199,.65) 0%, #fff 40%); }
+    .pg-st-wide { grid-column: 1 / -1; }
+    .pg-st-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .pg-st-tag { font-size: 0.69rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    .pg-st-card h4 { margin: 0 0 6px; font-size: 0.94rem; }
+    .pg-st-card ul { margin: 0; padding-left: 16px; font-size: 0.84rem; color: #334155; display: grid; gap: 3px; line-height: 1.42; }
+    .pg-intro-line { margin: 0 0 9px; font-size: 0.88rem; color: #334155; }
+    .pg-table-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; background: #fff; }
+    .pg-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .pg-table th { background: #0f172a; color: #fff; text-align: left; padding: 8px 10px; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .pg-table td { padding: 7px 10px; border-top: 1px solid var(--border); }
+    .pg-table tr:nth-child(even) td { background: #f8fafc; }
+    .pg-skill-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #f5f3ff; border: 1px solid #ddd6fe; color: var(--purple); font-size: 0.73rem; font-weight: 800; white-space: nowrap; }
+    .pg-email-details { border: 1px solid #cbd5e1; border-radius: 11px; background: #f8fafc; overflow: hidden; }
+    .pg-email-details summary { list-style: none; padding: 10px 14px; font-size: 0.84rem; font-weight: 800; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .pg-email-details summary::-webkit-details-marker { display: none; }
+    .pg-details-hint { font-size: 0.74rem; font-weight: 700; color: var(--blue); }
+    .pg-email-quote { margin: 0; padding: 12px 16px; border-top: 1px solid #cbd5e1; background: #fff; font-size: 0.84rem; color: #334155; line-height: 1.5; }
+    .pg-email-quote p { margin: 0 0 8px; }
+    .pg-email-quote ol { margin: 0 0 8px; padding-left: 18px; display: grid; gap: 5px; }
+    .pg-email-qlist { margin: 0 0 10px; padding-left: 18px; display: grid; gap: 3px; color: #0f172a; }
+    .pg-email-closing { margin: 0 !important; color: #047857; font-weight: 700; }
+    .pg-two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .pg-panel-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 13px; padding: 14px 16px; margin-bottom: 0; }
+    .pg-compact-p { margin: 0 0 8px; font-size: 0.83rem; color: #334155; }
+    .pg-ets-steps { margin: 0; padding-left: 17px; display: grid; gap: 5px; font-size: 0.83rem; line-height: 1.42; }
+    @media (max-width: 640px) {
+      .pg-svg-frame { display: none; } .pg-mobile-flow { display: block; }
+      .pg-station-grid, .pg-two-col { grid-template-columns: 1fr; }
+      .pg-sheet { padding: 16px; }
+    }
+    @media print {
+      @page { size: letter portrait; margin: 9mm 10mm; }
+      body { background: #fff; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .win-bar, .pg-email-details, .pg-mobile-flow { display: none !important; }
+      .pg-sheet { border: none; box-shadow: none; padding: 0; border-radius: 0; max-width: 100%; }
+      code { padding: 0 3px; font-size: 0.88em; border-radius: 3px; }
+      .pg-masthead { padding-bottom: 6px; margin-bottom: 7px; }
+      .pg-masthead-top { margin-bottom: 3px; }
+      .pg-badge-pill, .pg-date-chip { font-size: 6.7pt; padding: 2px 7px; }
+      .pg-title { font-size: 13pt; margin-bottom: 2px; }
+      .pg-lead { font-size: 8.3pt; }
+      .pg-section { margin-bottom: 7px; }
+      .pg-sec-head { margin-bottom: 4px; gap: 6px; }
+      .pg-sec-num { width: 18px; height: 18px; font-size: 6.8pt; border-radius: 4px; }
+      .pg-sec-title { font-size: 8.9pt; }
+      .pg-svg-frame { display: block !important; padding: 4px 6px 2px; margin-bottom: 6px; border-radius: 7px; break-inside: avoid; page-break-inside: avoid; }
+      .pg-flow-svg { width: 100%; max-height: 84px; }
+      .pg-station-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+      .pg-st-card { padding: 5px 8px; border-radius: 6px; border-left-width: 4px; break-inside: avoid; page-break-inside: avoid; }
+      .pg-st-top { margin-bottom: 1px; }
+      .pg-st-tag { font-size: 6.2pt; }
+      .pg-st-card h4 { font-size: 8.1pt; margin-bottom: 2px; }
+      .pg-st-card ul { font-size: 7.2pt; line-height: 1.24; gap: 1.5px; padding-left: 13px; }
+      .pg-intro-line { font-size: 7.6pt; margin-bottom: 4px; }
+      .pg-table-wrap { margin-bottom: 0; border-radius: 7px; break-inside: avoid; page-break-inside: avoid; }
+      .pg-table { font-size: 7.4pt; }
+      .pg-table th { padding: 3.5px 7px; font-size: 6.6pt; }
+      .pg-table td { padding: 3.5px 7px; }
+      .pg-skill-chip { font-size: 6.6pt; padding: 1px 6px; }
+      .pg-two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+      .pg-panel-box { padding: 6px 8px; border-radius: 7px; break-inside: avoid; page-break-inside: avoid; }
+      .pg-compact-p { font-size: 7.2pt; line-height: 1.24; margin-bottom: 4px; }
+      .pg-ets-steps { font-size: 7.2pt; line-height: 1.24; gap: 2.5px; padding-left: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="win-bar">
+    <strong>📘 Guía para Padres — Misión STEAM English A1 (Vista Independiente)</strong>
+    <button type="button" onclick="window.print()">🖨️ Imprimir / Guardar PDF (1 Hoja)</button>
+  </div>
+  ${cloneNode.outerHTML}
+</body>
+</html>`;
+  }
+
+  function openParentsGuideStandaloneWindow() {
+    const htmlDoc = buildParentsGuideStandaloneHtml();
+    if (!htmlDoc) return;
+
+    const win = window.open("", "_blank");
+    if (!win) {
+      showToast("Tu navegador bloqueó la ventana nueva. Permite ventanas emergentes o usa Imprimir / PDF.");
+      return;
+    }
+    try {
+      win.opener = null;
+      win.document.open();
+      win.document.write(htmlDoc);
+      win.document.close();
+      showToast("Guía para Padres abierta en otra ventana.");
+    } catch (err) {
+      showToast("No se pudo abrir la ventana independiente. Usa Imprimir / PDF (1 Hoja).");
+    }
+  }
+
+  function initParentsGuideModal() {
+    const modal = document.getElementById("parents-guide-modal");
+    const headerBtn = document.getElementById("header-parents-guide-btn");
+    const footerBtn = document.getElementById("footer-parents-guide-btn");
+    const closeBtn = document.getElementById("pg-close-btn");
+    const printBtn = document.getElementById("pg-print-btn");
+    const windowBtn = document.getElementById("pg-window-btn");
+    if (!modal) return;
+
+    [headerBtn, footerBtn].forEach((btn) => {
+      if (!btn) return;
+      btn.addEventListener("click", () => openModal(modal, btn));
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => closeModal(modal, true));
+    }
+
+    modal.addEventListener("click", (evt) => {
+      if (evt.target === modal) closeModal(modal, true);
+    });
+
+    modal.querySelectorAll("[data-pg-goto-station]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.getAttribute("data-pg-goto-station");
+        closeModal(modal, false);
+        const tab = document.querySelector(`.station-tab[data-station="${target}"]`);
+        if (tab) {
+          tab.click();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    });
+
+    if (printBtn) {
+      printBtn.addEventListener("click", () => {
+        document.body.classList.add("is-printing-parents-guide");
+        window.print();
+      });
+    }
+
+    if (windowBtn) {
+      windowBtn.addEventListener("click", () => openParentsGuideStandaloneWindow());
+    }
+  }
+
+  /* --- Telemetría Local, Respaldo (.json), Importación y Centro de Reinicio Seguro --- */
+  function pluralEs(count, singular, plural) {
+    return `${count} ${count === 1 ? singular : plural}`;
+  }
+
+  function computeStorageStats() {
+    const customItemsCount = (state.customItems || []).length;
+    const baseBankCount = (window.APP_DATA.verifiedCoreItems || []).length;
+    const st0Total = (window.APP_DATA.station0Challenges || []).length || 4;
+    const st0Challenges = (state.completedStation0Challenges || []).length;
+    const st1Total = (window.APP_DATA.comparativeQuizItems || []).length || 6;
+    const st1Quiz = (state.station1QuizSolved || []).length;
+    const compCount = (state.comparatives || []).length;
+    const st2TotalVerbs = ((window.APP_DATA.station2Data && window.APP_DATA.station2Data.pastVerbQuiz) || []).length || 6;
+    const st2Verbs = (state.station2VerbQuizSolved || []).length;
+    const npBuilt = buildNewspaperTexts(state.newspaper);
+    const st3TotalRadar = ((window.APP_DATA.station3Data && window.APP_DATA.station3Data.keywordRadar) || []).length || 5;
+    const st3Radar = (state.station3RadarSolved || []).length;
+    const s3Qs = window.APP_DATA.station3Data.officialQuestions;
+    let metaDone = 0;
+    s3Qs.forEach((q) => {
+      if (buildMetaAnswer(q.id).complete) metaDone += 1;
+    });
+    const ps = state.practiceStats || {};
+    const printPrefsCustomized = ps.printPencilMode === true || ps.printHighlights === false;
+
+    return {
+      customItemsCount,
+      totalBankCount: baseBankCount + customItemsCount,
+      st0Challenges,
+      st0Total,
+      st0HasData: window.AppStorage.isSectionDirty(state, "station-0"),
+      st1Quiz,
+      st1Total,
+      compCount,
+      st1HasData: window.AppStorage.isSectionDirty(state, "station-1"),
+      st2Verbs,
+      st2TotalVerbs,
+      npParts: npBuilt.completedCount,
+      st2HasData: window.AppStorage.isSectionDirty(state, "station-2"),
+      st3Radar,
+      st3TotalRadar,
+      metaDone,
+      metaTotal: s3Qs.length,
+      st3HasData: window.AppStorage.isSectionDirty(state, "station-3"),
+      lvl1Best: ps.level1Best || 0,
+      lvl2Best: ps.level2Best || 0,
+      printPrefsCustomized,
+      st4HasData: window.AppStorage.isSectionDirty(state, "station-4")
+    };
+  }
+
+  function renderFooterStorageSummary() {
+    const host = document.getElementById("footer-storage-summary");
+    if (!host) return;
+    const s = computeStorageStats();
+    const chips = [
+      { label: `🗺️ Banco: ${s.totalBankCount} act. • ${s.st0Challenges}/${s.st0Total} LEGO`, active: s.st0HasData },
+      { label: `⚖️ Comparatives: ${s.compCount}`, active: s.st1HasData },
+      { label: `📰 Newspaper: ${s.npParts}/5`, active: s.st2HasData },
+      { label: `💬 Preguntas: ${s.metaDone}/${s.metaTotal}`, active: s.st3HasData },
+      { label: `🏆 Récords: N1 ${s.lvl1Best}% • N2 ${s.lvl2Best}%`, active: s.st4HasData }
+    ];
+    host.innerHTML = chips
+      .map((c) => `<span class="footer-stat-chip ${c.active ? "has-data" : ""}">${escapeHtml(c.label)}</span>`)
+      .join("");
+  }
+
+  function applyStateResetAndRerender(sectionId) {
+    window.AppSpeech.setRate(state.speechRate || 0.85);
+    syncSpeechButtonsFromState();
+
+    if (sectionId === "all" || sectionId === "station-0") {
+      selectedPieceIds = [];
+      activeChallengeIdx = 0;
+      const newEs = document.getElementById("new-item-es");
+      const newEn = document.getElementById("new-item-en");
+      const newCat = document.getElementById("new-item-cat");
+      if (newEs) newEs.value = "";
+      if (newEn) {
+        newEn.value = "";
+        newEn.dataset.userEdited = "false";
+      }
+      if (newCat) newCat.value = "cultural";
+    }
+    if (sectionId === "all" || sectionId === "station-1") {
+      compDraft = { item1Id: null, verb: "was", adjId: null, hasThan: false, item2Id: null };
+      const compEs = document.getElementById("comp-custom-es");
+      const compEn = document.getElementById("comp-custom-en");
+      const compChips = document.getElementById("comp-custom-chips");
+      if (compEs) compEs.value = "";
+      if (compEn) compEn.value = "";
+      if (compChips) compChips.innerHTML = "";
+    }
+    if (sectionId === "all" || sectionId === "station-2") {
+      tmIsPast = false;
+      revealedMemoryKeys = new Set();
+    }
+    if (sectionId === "all" || sectionId === "station-3") {
+      st3ActiveQIdx = 0;
+      st3RehearsalMode = false;
+      st3RevealedWarmups = new Set();
+      st3RevealedSummary = new Set();
+    }
+    if (sectionId === "all" || sectionId === "station-4") {
+      st4Level = 1;
+      st4Filter = "all";
+      st4PrintView = "both";
+      st4SolvedIds = new Set();
+      st4HintDepth = {};
+      st4TypedDrafts = {};
+      st4VictoryAnnounced = false;
+    }
+
+    const beforeOrphanSnapshot = JSON.stringify({
+      np: state.newspaper,
+      meta: state.metacognition
+    });
+
+    renderBank();
+    renderStation0Builder();
+    renderStation1Quiz();
+    renderStation1Builder();
+    renderSavedComparatives();
+    syncStation2InputsFromState();
+    renderStation2TimeMachine();
+    renderStation2Quiz();
+    renderStation2Newspaper();
+    renderStation3All();
+
+    const afterOrphanSnapshot = JSON.stringify({
+      np: state.newspaper,
+      meta: state.metacognition
+    });
+    if (beforeOrphanSnapshot !== afterOrphanSnapshot) {
+      window.AppStorage.save(state);
+    }
+
+    renderStation4All();
+    renderFooterStorageSummary();
+  }
+
   function initStorageActions() {
     const exportBtn = document.getElementById("export-json-btn");
+    const importBtn = document.getElementById("import-json-btn");
+    const importInput = document.getElementById("import-json-input");
     const resetBtn = document.getElementById("reset-data-btn");
+    const resetModal = document.getElementById("reset-manager-modal");
+    const rmCloseBtn = document.getElementById("rm-close-btn");
+    const rmBackupBtn = document.getElementById("rm-backup-first-btn");
+    const rmStationList = document.getElementById("rm-station-list");
+    const rmFullResetControls = document.getElementById("rm-full-reset-controls");
+
+    let pendingSectionConfirm = null;
+    let pendingFullConfirm = false;
+
+    function triggerBackupDownload() {
+      window.AppStorage.exportJson(state);
+      showToast("Respaldo descargado (.json). Guárdalo en un lugar seguro.");
+    }
 
     if (exportBtn) {
-      exportBtn.addEventListener("click", () => {
-        window.AppStorage.exportJson(state);
-        showToast("Respaldo descargado (.json).");
+      exportBtn.addEventListener("click", triggerBackupDownload);
+    }
+    if (rmBackupBtn) {
+      rmBackupBtn.addEventListener("click", triggerBackupDownload);
+    }
+
+    if (importBtn && importInput) {
+      importBtn.addEventListener("click", () => importInput.click());
+      importInput.addEventListener("change", () => {
+        const file = importInput.files && importInput.files[0];
+        importInput.value = "";
+        if (!file) return;
+        if (file.size > window.AppStorage.MAX_IMPORT_BYTES) {
+          showToast("⚠️ El archivo supera el límite seguro (512 KB).");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = window.AppStorage.parseBackupJson(String(reader.result || ""));
+          if (!result.ok) {
+            showToast(`⚠️ ${result.error}`);
+            return;
+          }
+          state = result.state;
+          window.AppStorage.save(state);
+          applyStateResetAndRerender("all");
+          showToast("✅ Respaldo (.json) restaurado correctamente.");
+        };
+        reader.onerror = () => {
+          showToast("⚠️ No se pudo leer el archivo seleccionado.");
+        };
+        reader.readAsText(file, "utf-8");
       });
     }
 
-    if (resetBtn) {
+    function renderResetManagerContent(focusSelector) {
+      if (!rmStationList || !rmFullResetControls) return;
+      const s = computeStorageStats();
+      const st4MetaParts = [`Récord N1: ${s.lvl1Best}%`, `Récord N2: ${s.lvl2Best}%`];
+      if (s.printPrefsCustomized) {
+        st4MetaParts.push("opciones de impresión");
+      }
+
+      const rows = [
+        {
+          id: "station-0",
+          name: "🗺️ Estación 0: Mapa y Banco",
+          meta: `${pluralEs(s.customItemsCount, "agregado", "agregados")} del cuaderno • ${s.st0Challenges}/${s.st0Total} retos LEGO`,
+          hasData: s.st0HasData
+        },
+        {
+          id: "station-1",
+          name: "⚖️ Estación 1: Comparatives",
+          meta: `${pluralEs(s.compCount, "oración guardada", "oraciones guardadas")} • ${s.st1Quiz}/${s.st1Total} retos rápidos`,
+          hasData: s.st1HasData
+        },
+        {
+          id: "station-2",
+          name: "📰 Estación 2: Newspaper",
+          meta: `${s.npParts}/5 partes del periódico • ${s.st2Verbs}/${s.st2TotalVerbs} verbos dominados`,
+          hasData: s.st2HasData
+        },
+        {
+          id: "station-3",
+          name: "💬 Estación 3: 5 Preguntas",
+          meta: `${s.metaDone}/${s.metaTotal} preguntas completas • ${s.st3Radar}/${s.st3TotalRadar} radares`,
+          hasData: s.st3HasData
+        },
+        {
+          id: "station-4",
+          name: "🏆 Estación 4: Reto Martes",
+          meta: st4MetaParts.join(" • "),
+          hasData: s.st4HasData
+        }
+      ];
+
+      rmStationList.innerHTML = rows
+        .map((r) => {
+          const isConfirming = pendingSectionConfirm === r.id;
+          let actionHtml = "";
+          if (!r.hasData) {
+            actionHtml = `<span class="tab-badge">Sin datos</span>`;
+          } else if (isConfirming) {
+            actionHtml = `
+              <button type="button" class="btn btn-danger-solid btn-sm" data-rm-confirm-sec="${r.id}">Sí, reiniciar</button>
+              <button type="button" class="btn btn-secondary btn-sm" data-rm-cancel-sec="${r.id}">Cancelar</button>`;
+          } else {
+            actionHtml = `
+              <button type="button" class="btn btn-danger-soft btn-sm" data-rm-ask-sec="${r.id}">Reiniciar estación</button>`;
+          }
+          return `
+            <div class="rm-station-row ${r.hasData ? "" : "is-empty"}">
+              <div class="rm-st-info">
+                <div class="rm-st-name">${escapeHtml(r.name)}</div>
+                <div class="rm-st-meta">${escapeHtml(r.meta)}</div>
+              </div>
+              <div class="rm-row-actions">${actionHtml}</div>
+            </div>`;
+        })
+        .join("");
+
+      rmStationList.querySelectorAll("[data-rm-ask-sec]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const secId = btn.getAttribute("data-rm-ask-sec");
+          pendingSectionConfirm = secId;
+          pendingFullConfirm = false;
+          renderResetManagerContent(`[data-rm-confirm-sec="${secId}"]`);
+        });
+      });
+
+      rmStationList.querySelectorAll("[data-rm-cancel-sec]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const secId = btn.getAttribute("data-rm-cancel-sec");
+          pendingSectionConfirm = null;
+          renderResetManagerContent(`[data-rm-ask-sec="${secId}"]`);
+        });
+      });
+
+      rmStationList.querySelectorAll("[data-rm-confirm-sec]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const secId = btn.getAttribute("data-rm-confirm-sec");
+          const labelMap = {
+            "station-0": "Estación 0 (Mapa y Banco)",
+            "station-1": "Estación 1 (Comparatives)",
+            "station-2": "Estación 2 (Newspaper)",
+            "station-3": "Estación 3 (5 Preguntas)",
+            "station-4": "Estación 4 (Reto Martes)"
+          };
+          state = window.AppStorage.resetSection(state, secId);
+          pendingSectionConfirm = null;
+          applyStateResetAndRerender(secId);
+          renderResetManagerContent("#rm-close-btn");
+          showToast(`🧹 ${labelMap[secId] || "Estación"} reiniciada correctamente.`);
+        });
+      });
+
+      if (pendingFullConfirm) {
+        rmFullResetControls.innerHTML = `
+          <button type="button" class="btn btn-danger-solid" id="rm-confirm-all-btn">Sí, reiniciar TODO</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="rm-cancel-all-btn">Cancelar</button>`;
+        const confirmAll = document.getElementById("rm-confirm-all-btn");
+        const cancelAll = document.getElementById("rm-cancel-all-btn");
+        if (confirmAll) {
+          confirmAll.addEventListener("click", () => {
+            state = window.AppStorage.reset();
+            pendingFullConfirm = false;
+            pendingSectionConfirm = null;
+            applyStateResetAndRerender("all");
+            renderResetManagerContent();
+            closeModal(resetModal, true);
+            showToast("🧹 Todos los datos del navegador fueron reiniciados desde cero.");
+          });
+        }
+        if (cancelAll) {
+          cancelAll.addEventListener("click", () => {
+            pendingFullConfirm = false;
+            renderResetManagerContent("#rm-reset-all-btn");
+          });
+        }
+      } else {
+        rmFullResetControls.innerHTML = `
+          <button type="button" class="btn btn-danger-solid" id="rm-reset-all-btn">🗑️ Reiniciar todo ahora</button>`;
+        const askAll = document.getElementById("rm-reset-all-btn");
+        if (askAll) {
+          askAll.addEventListener("click", () => {
+            pendingFullConfirm = true;
+            pendingSectionConfirm = null;
+            renderResetManagerContent("#rm-confirm-all-btn");
+          });
+        }
+      }
+
+      if (focusSelector && resetModal && !resetModal.hidden) {
+        const nextFocus = resetModal.querySelector(focusSelector) || rmCloseBtn;
+        if (nextFocus && typeof nextFocus.focus === "function") {
+          nextFocus.focus();
+        }
+      }
+    }
+
+    if (resetBtn && resetModal) {
       resetBtn.addEventListener("click", () => {
-        const ok = window.confirm("¿Reiniciar los datos guardados de prueba en este navegador?");
-        if (!ok) return;
-        state = window.AppStorage.reset();
-        window.AppSpeech.setRate(state.speechRate);
-        selectedPieceIds = [];
-        compDraft = { item1Id: null, verb: "was", adjId: null, hasThan: false, item2Id: null };
-        tmIsPast = false;
-        revealedMemoryKeys = new Set();
-        st3ActiveQIdx = 0;
-        st3RehearsalMode = false;
-        st3RevealedWarmups = new Set();
-        st3RevealedSummary = new Set();
-        st4Level = 1;
-        st4Filter = "all";
-        st4PrintView = "both";
-        st4SolvedIds = new Set();
-        st4HintDepth = {};
-        st4TypedDrafts = {};
-        st4VictoryAnnounced = false;
-        renderBank();
-        renderStation0Builder();
-        renderStation1Quiz();
-        renderStation1Builder();
-        renderSavedComparatives();
-        syncStation2InputsFromState();
-        renderStation2TimeMachine();
-        renderStation2Quiz();
-        renderStation2Newspaper();
-        renderStation3All();
-        renderStation4All();
-        showToast("Datos reiniciados correctamente.");
+        pendingSectionConfirm = null;
+        pendingFullConfirm = false;
+        renderResetManagerContent();
+        openModal(resetModal, resetBtn);
       });
     }
+
+    if (rmCloseBtn && resetModal) {
+      rmCloseBtn.addEventListener("click", () => closeModal(resetModal, true));
+    }
+
+    if (resetModal) {
+      resetModal.addEventListener("click", (evt) => {
+        if (evt.target === resetModal) closeModal(resetModal, true);
+      });
+    }
+
+    window.addEventListener("app-storage-updated", () => {
+      renderFooterStorageSummary();
+    });
+
+    renderFooterStorageSummary();
   }
 
   /* --- Inicialización --- */
@@ -4307,6 +4945,7 @@
     initStation2();
     initStation3();
     initStation4();
+    initParentsGuideModal();
     initStorageActions();
   });
 })();

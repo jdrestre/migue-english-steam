@@ -30,6 +30,18 @@
           <button type="button" class="pill-btn" id="rate-slow-btn">Despacio</button>
           <button type="button" class="pill-btn" id="rate-normal-btn">Normal</button>
         </div>
+
+        <button
+          type="button"
+          class="header-guide-btn"
+          id="header-parents-guide-btn"
+          aria-haspopup="dialog"
+          aria-controls="parents-guide-modal"
+          title="Guía para Padres: origen de cada estación según el Correo de la Miss"
+        >
+          <span class="header-guide-icon" aria-hidden="true">📘</span>
+          <span class="header-guide-label">Guía para Padres</span>
+        </button>
       </div>
     </div>
   </header>
@@ -193,17 +205,6 @@
             <button type="button" class="btn btn-audio" id="builder-speak-btn" disabled>
               🔒 Arma la frase correcta para escuchar
             </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Barra de Persistencia -->
-      <div class="card no-print">
-        <div class="status-bar">
-          <span>💾 Todo lo que agregues o escribas se guarda automáticamente solo en este navegador (privado).</span>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-secondary btn-sm" id="export-json-btn">Descargar respaldo (.json)</button>
-            <button type="button" class="btn btn-danger-soft" id="reset-data-btn">Reiniciar datos de prueba</button>
           </div>
         </div>
       </div>
@@ -919,6 +920,433 @@
       </div>
     </section>
   </main>
+
+  <!-- ==================== FOOTER GLOBAL: CENTRO DE CONTROL PARA PADRES ==================== -->
+  <footer class="app-footer no-print" role="contentinfo" aria-label="Centro de control para padres y persistencia local">
+    <div class="container">
+      <div class="footer-shell">
+        <div class="footer-primary-row">
+          <div class="footer-brand-col">
+            <div class="footer-eyebrow">
+              <span class="footer-live-dot" aria-hidden="true"></span>
+              <span>Zona de Padres • Guardado Privado en este Navegador</span>
+            </div>
+            <h2 class="footer-heading">Misión STEAM: English A1</h2>
+            <p class="footer-subcopy">
+              El navegador guarda cada respuesta de Miguel solo en este equipo. Ningún servidor externo recibe datos.
+            </p>
+            <div class="footer-telemetry" id="footer-storage-summary" aria-live="polite"></div>
+          </div>
+
+          <div class="footer-actions-col">
+            <div class="footer-action-group">
+              <span class="footer-group-label">Orientación del Examen</span>
+              <button
+                type="button"
+                class="footer-btn footer-btn-guide"
+                id="footer-parents-guide-btn"
+                aria-haspopup="dialog"
+                aria-controls="parents-guide-modal"
+              >
+                <span aria-hidden="true">📘</span>
+                <span>Abrir Guía para Padres</span>
+                <span class="footer-btn-arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+
+            <div class="footer-action-group">
+              <span class="footer-group-label">Respaldo (.json) y Reinicio Seguro</span>
+              <div class="footer-btn-row">
+                <button type="button" class="footer-btn footer-btn-export" id="export-json-btn">
+                  <span aria-hidden="true">⬇️</span>
+                  <span>Descargar respaldo (.json)</span>
+                </button>
+                <button type="button" class="footer-btn footer-btn-import" id="import-json-btn">
+                  <span aria-hidden="true">⬆️</span>
+                  <span>Restaurar (.json)</span>
+                </button>
+                <input
+                  type="file"
+                  id="import-json-input"
+                  accept=".json,application/json"
+                  class="sr-only"
+                  aria-label="Seleccionar archivo de respaldo JSON"
+                >
+                <button
+                  type="button"
+                  class="footer-btn footer-btn-reset"
+                  id="reset-data-btn"
+                  aria-haspopup="dialog"
+                  aria-controls="reset-manager-modal"
+                >
+                  <span aria-hidden="true">🧹</span>
+                  <span>Reiniciar datos…</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom-meta">
+          <span>Miguel Ángel • 3° Primaria • Colegio Benedictino de Santa María</span>
+          <span>Recuperación 3° Periodo • Martes 8:00–10:00 a.m.</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== MODAL 1: GUÍA EDITORIAL PARA PADRES ==================== -->
+  <div
+    class="modal-overlay"
+    id="parents-guide-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="pg-modal-title"
+    hidden
+  >
+    <div class="modal-dialog pg-dialog">
+      <div class="modal-topbar pg-topbar no-print">
+        <div class="pg-topbar-left">
+          <span class="pg-topbar-kicker">📘 Guía para Padres</span>
+          <span class="pg-topbar-meta">Basada en el Correo de la Miss • Resumen en 1 Hoja</span>
+        </div>
+        <button type="button" class="modal-close-btn pg-close-btn" id="pg-close-btn" aria-label="Cerrar Guía para Padres">
+          <span aria-hidden="true">✕</span>
+        </button>
+        <div class="pg-topbar-actions">
+          <button type="button" class="pg-action-btn pg-action-primary" id="pg-print-btn">
+            <span aria-hidden="true">🖨️</span>
+            <span>Imprimir / PDF (1&nbsp;Hoja)</span>
+          </button>
+          <button type="button" class="pg-action-btn pg-action-secondary" id="pg-window-btn">
+            <span aria-hidden="true">↗️</span>
+            <span>Abrir en otra ventana</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-body pg-scroll-area">
+        <article class="pg-sheet" id="pg-printable-sheet">
+          <!-- Cabecera Editorial -->
+          <header class="pg-masthead">
+            <div class="pg-masthead-top">
+              <span class="pg-badge-pill">Misión STEAM • English A1 (3° Primaria)</span>
+              <span class="pg-date-chip">📅 Evaluación: Martes 8:00–10:00 a.m.</span>
+            </div>
+            <h2 class="pg-title" id="pg-modal-title">Guía para Padres: Mapa del Correo de la Miss</h2>
+            <p class="pg-lead">
+              Esta guía explica cómo cada estación de la aplicación cubre los tres puntos del Correo de la Miss.
+            </p>
+          </header>
+
+          <!-- Diagrama Arquitectónico SVG (Desktop/Print) + Mapa Vertical Compacto (Móvil) -->
+          <section class="pg-section" aria-labelledby="pg-sec-map">
+            <div class="pg-sec-head">
+              <span class="pg-sec-num">01</span>
+              <h3 class="pg-sec-title" id="pg-sec-map">Origen de cada estación según el Correo de la Miss</h3>
+            </div>
+
+            <div class="pg-svg-frame" role="img" aria-label="Diagrama de relación entre el Correo de la Miss y las cinco estaciones de la aplicación">
+              <svg viewBox="0 0 840 162" width="100%" xmlns="http://www.w3.org/2000/svg" class="pg-flow-svg">
+                <title>Mapa del Correo de la Miss hacia las 5 Estaciones</title>
+                <desc>El Correo de la Miss alimenta cinco estaciones: Mapa y Banco, Comparatives, Newspaper, 5 Preguntas y Reto Martes.</desc>
+                <rect x="225" y="6" width="390" height="44" rx="12" fill="#0f172a" />
+                <text x="420" y="25" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="800" font-family="system-ui, sans-serif">CORREO DE LA MISS • RECUPERACIÓN 3° PERIODO</text>
+                <text x="420" y="41" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600" font-family="system-ui, sans-serif">Martes 8:00–10:00 a.m. • 3 Puntos + 5 Preguntas</text>
+
+                <path d="M420 50 L420 72 M84 72 L756 72 M84 72 L84 92 M252 72 L252 92 M420 72 L420 92 M588 72 L588 92 M756 72 L756 92" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linecap="round" />
+
+                <g transform="translate(8,92)">
+                  <rect width="152" height="62" rx="11" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2" />
+                  <text x="76" y="22" text-anchor="middle" fill="#1d4ed8" font-size="10" font-weight="800" font-family="system-ui, sans-serif">BASE DEL PROYECTO</text>
+                  <text x="76" y="39" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800" font-family="system-ui, sans-serif">0. Mapa y Banco</text>
+                  <text x="76" y="53" text-anchor="middle" fill="#475569" font-size="9.5" font-family="system-ui, sans-serif">Maze, Dream Catcher, LEGO</text>
+                </g>
+
+                <g transform="translate(176,92)">
+                  <rect width="152" height="62" rx="11" fill="#fff7ed" stroke="#c2410c" stroke-width="2" />
+                  <text x="76" y="22" text-anchor="middle" fill="#c2410c" font-size="10" font-weight="800" font-family="system-ui, sans-serif">PUNTO 1 DEL CORREO</text>
+                  <text x="76" y="39" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800" font-family="system-ui, sans-serif">1. Comparatives</text>
+                  <text x="76" y="53" text-anchor="middle" fill="#475569" font-size="9.5" font-family="system-ui, sans-serif">-er / more / better + than</text>
+                </g>
+
+                <g transform="translate(344,92)">
+                  <rect width="152" height="62" rx="11" fill="#ecfdf5" stroke="#047857" stroke-width="2" />
+                  <text x="76" y="22" text-anchor="middle" fill="#047857" font-size="10" font-weight="800" font-family="system-ui, sans-serif">PUNTO 2 DEL CORREO</text>
+                  <text x="76" y="39" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800" font-family="system-ui, sans-serif">2. Newspaper</text>
+                  <text x="76" y="53" text-anchor="middle" fill="#475569" font-size="9.5" font-family="system-ui, sans-serif">5 partes + Pasado Simple</text>
+                </g>
+
+                <g transform="translate(512,92)">
+                  <rect width="152" height="62" rx="11" fill="#f5f3ff" stroke="#6d28d9" stroke-width="2" />
+                  <text x="76" y="22" text-anchor="middle" fill="#6d28d9" font-size="10" font-weight="800" font-family="system-ui, sans-serif">PUNTO 3 DEL CORREO</text>
+                  <text x="76" y="39" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800" font-family="system-ui, sans-serif">3. 5 Preguntas</text>
+                  <text x="76" y="53" text-anchor="middle" fill="#475569" font-size="9.5" font-family="system-ui, sans-serif">Metacognición + because</text>
+                </g>
+
+                <g transform="translate(680,92)">
+                  <rect width="152" height="62" rx="11" fill="#fef3c7" stroke="#b45309" stroke-width="2" />
+                  <text x="76" y="22" text-anchor="middle" fill="#92400e" font-size="10" font-weight="800" font-family="system-ui, sans-serif">EVALUACIÓN FINAL</text>
+                  <text x="76" y="39" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800" font-family="system-ui, sans-serif">4. Reto Martes</text>
+                  <text x="76" y="53" text-anchor="middle" fill="#475569" font-size="9.5" font-family="system-ui, sans-serif">Reto Activo + 2 Hojas PDF</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Mapa Vertical Limpio solo para pantallas móviles <= 600px (cero scroll horizontal) -->
+            <div class="pg-mobile-flow no-print" aria-hidden="true">
+              <div class="pg-mflow-root">
+                <strong>CORREO DE LA MISS • 3° PERIODO</strong>
+                <span>Martes 8:00–10:00 a.m. • 3 Puntos + 5 Preguntas</span>
+              </div>
+              <div class="pg-mflow-spine">
+                <div class="pg-mflow-node pg-mflow-blue"><em>Base del proyecto</em><strong>0. Mapa y Banco</strong></div>
+                <div class="pg-mflow-node pg-mflow-orange"><em>Punto 1</em><strong>1. Comparatives</strong></div>
+                <div class="pg-mflow-node pg-mflow-green"><em>Punto 2</em><strong>2. Newspaper</strong></div>
+                <div class="pg-mflow-node pg-mflow-purple"><em>Punto 3</em><strong>3. 5 Preguntas</strong></div>
+                <div class="pg-mflow-node pg-mflow-amber"><em>Evaluación final</em><strong>4. Reto Martes</strong></div>
+              </div>
+            </div>
+
+            <div class="pg-station-grid">
+              <div class="pg-st-card pg-st-blue">
+                <div class="pg-st-top">
+                  <span class="pg-st-tag">Base del proyecto</span>
+                  <button type="button" class="pg-jump-link no-print" data-pg-goto-station="station-0">Ir →</button>
+                </div>
+                <h4>🗺️ Estación 0: Mapa y Banco</h4>
+                <ul>
+                  <li>Almacena las dos actividades confirmadas del correo: <code>The Maze</code> y <code>The Dream Catcher</code>.</li>
+                  <li>Agrega fiestas culturales reales del cuaderno de Miguel.</li>
+                  <li>Enseña los cuatro colores LEGO para ordenar oraciones en inglés.</li>
+                </ul>
+              </div>
+
+              <div class="pg-st-card pg-st-orange">
+                <div class="pg-st-top">
+                  <span class="pg-st-tag">Punto 1 del correo</span>
+                  <button type="button" class="pg-jump-link no-print" data-pg-goto-station="station-1">Ir →</button>
+                </div>
+                <h4>⚖️ Estación 1: Comparatives</h4>
+                <ul>
+                  <li>Cubre comparaciones de actividades, eventos y fiestas culturales.</li>
+                  <li>Entrena tres reglas: <code>-er than</code>, <code>more ... than</code> y <code>better than</code>.</li>
+                  <li>Usa los gustos de Miguel (piano, Fortnite, MrBeast) antes de pasar a STEAM.</li>
+                </ul>
+              </div>
+
+              <div class="pg-st-card pg-st-green">
+                <div class="pg-st-top">
+                  <span class="pg-st-tag">Punto 2 del correo</span>
+                  <button type="button" class="pg-jump-link no-print" data-pg-goto-station="station-2">Ir →</button>
+                </div>
+                <h4>📰 Estación 2: Newspaper</h4>
+                <ul>
+                  <li>Construye el Periódico STEAM con verbos en pasado simple.</li>
+                  <li>Cubre las cinco partes del periódico: <code>NAME</code>, <code>TITLE</code>, <code>WHO</code>, <code>WHERE</code> y <code>WHAT</code>.</li>
+                  <li>Incluye el Modo Memoria para practicar sin mirar el modelo.</li>
+                </ul>
+              </div>
+
+              <div class="pg-st-card pg-st-purple">
+                <div class="pg-st-top">
+                  <span class="pg-st-tag">Punto 3 del correo</span>
+                  <button type="button" class="pg-jump-link no-print" data-pg-goto-station="station-3">Ir →</button>
+                </div>
+                <h4>💬 Estación 3: 5 Preguntas</h4>
+                <ul>
+                  <li>Entrena las cinco preguntas de información y metacognición del correo.</li>
+                  <li>Une las respuestas 1 a 4 con <code>because</code> y la respuesta 5 con <code>I learned</code>.</li>
+                  <li>Incluye el Modo Simulacro Oral con audio para practicar oído y pronunciación.</li>
+                </ul>
+              </div>
+
+              <div class="pg-st-card pg-st-amber pg-st-wide">
+                <div class="pg-st-top">
+                  <span class="pg-st-tag">Evaluación Martes 8:00–10:00 a.m.</span>
+                  <button type="button" class="pg-jump-link no-print" data-pg-goto-station="station-4">Ir →</button>
+                </div>
+                <h4>🏆 Estación 4: Reto Martes</h4>
+                <ul>
+                  <li>Integra los tres puntos del correo en el Reto de Memoria Activa de dos niveles.</li>
+                  <li>Genera dos hojas imprimibles para repasar con lápiz el lunes en la noche.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- Sección 2: 5 Preguntas Exactas + Transcripción Literal del Correo -->
+          <section class="pg-section" aria-labelledby="pg-sec-qs">
+            <div class="pg-sec-head">
+              <span class="pg-sec-num">02</span>
+              <h3 class="pg-sec-title" id="pg-sec-qs">Las 5 Preguntas del Correo de la Miss</h3>
+            </div>
+            <p class="pg-intro-line">
+              La Miss envió estas cinco preguntas como ejemplos (<strong>algunas</strong> preguntas) para preparar las actividades evaluativas.
+            </p>
+
+            <div class="pg-table-wrap">
+              <table class="pg-table">
+                <thead>
+                  <tr>
+                    <th style="width: 34px;">#</th>
+                    <th>Pregunta exacta en inglés</th>
+                    <th style="width: 196px;">Habilidad que evalúa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>1</strong></td>
+                    <td>What was your favorite task in STEAM? Why?</td>
+                    <td><span class="pg-skill-chip">Opinión + because</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>2</strong></td>
+                    <td>Was the maze process more difficult than making the dream catcher? Why?</td>
+                    <td><span class="pg-skill-chip">Comparative (more) + because</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>3</strong></td>
+                    <td>Which STEAM task was easier for you? And why?</td>
+                    <td><span class="pg-skill-chip">Comparative (-er) + because</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>4</strong></td>
+                    <td>What was the most boring part of STEAM? Why?</td>
+                    <td><span class="pg-skill-chip">Superlative + because</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>5</strong></td>
+                    <td>What did you learn from this STEAM?</td>
+                    <td><span class="pg-skill-chip">Pasado Simple (learned)</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <details class="pg-email-details no-print">
+              <summary>
+                <span>✉️ Ver transcripción literal del Correo de la Miss</span>
+                <span class="pg-details-hint">Mostrar / Ocultar</span>
+              </summary>
+              <blockquote class="pg-email-quote">
+                <p>
+                  Quiero informarte que debes presentarte el próximo <strong>Martes de 8 a 10 am</strong> para presentar
+                  las actividades evaluativas de recuperación del tercer periodo en las habilidades correspondientes al
+                  desarrollo del proyecto STEAM del tercer periodo.
+                </p>
+                <p>Para este recuerda prepararte con lo siguiente:</p>
+                <ol>
+                  <li>El uso de <strong>COMPARATIVES</strong> para comparar actividades, eventos y fiestas culturales.</li>
+                  <li>
+                    Construye un periódico sobre lo desarrollado en el STEAM. Recuerda las diferentes partes del texto
+                    (<strong>NAME</strong>, <strong>TITLE</strong>, <strong>WHO PARTICIPATED IN THE PROJECT</strong>,
+                    <strong>WHERE DID THE PROJECT TAKE PLACE</strong>,
+                    <strong>WHAT DID YOU DO DURING THIS PROJECT</strong>) hacer uso del pasado simple para describir
+                    eventos.
+                  </li>
+                  <li>
+                    Responder preguntas de información y de metacognición relacionadas con la información descrita en el
+                    artículo del periódico y del proceso de construcción sobre el proyecto, estas pueden ser
+                    <strong>algunas</strong> de las preguntas con las que puedes prepararte:
+                  </li>
+                </ol>
+                <ul class="pg-email-qlist">
+                  <li>What was your favorite task in STEAM ? Why?</li>
+                  <li>Was the maze process more difficult than making the dream catcher? why?</li>
+                  <li>Which STEAM task was easier for you? and why?</li>
+                  <li>What was the most boring part of STEAM? Why?</li>
+                  <li>What did you learn from this STEAM? ?</li>
+                </ul>
+                <p class="pg-email-closing"><em>Valoro tu esfuerzo y tu compromiso para seguir adelante.</em></p>
+              </blockquote>
+            </details>
+          </section>
+
+          <!-- Sección 3 y 4 en 2 columnas compactas: Datos + Rutina -->
+          <div class="pg-two-col">
+            <section class="pg-section pg-panel-box" aria-labelledby="pg-sec-data">
+              <div class="pg-sec-head">
+                <span class="pg-sec-num">03</span>
+                <h3 class="pg-sec-title" id="pg-sec-data">Privacidad, Respaldo (.json) y Reinicio</h3>
+              </div>
+              <p class="pg-compact-p">
+                El navegador guarda el progreso de Miguel solo en este equipo. Ningún servidor externo recibe datos ni fotos.
+              </p>
+              <ol class="pg-ets-steps">
+                <li>Pulsa <strong>Descargar respaldo (.json)</strong> en el pie de página para guardar el respaldo (<code>.json</code>) en tu equipo.</li>
+                <li>Pulsa <strong>Restaurar (.json)</strong> para cargar un respaldo (<code>.json</code>) previo en este navegador.</li>
+                <li>Pulsa <strong>Reiniciar datos…</strong> para reiniciar una estación específica o reiniciar todo.</li>
+              </ol>
+            </section>
+
+            <section class="pg-section pg-panel-box" aria-labelledby="pg-sec-routine">
+              <div class="pg-sec-head">
+                <span class="pg-sec-num">04</span>
+                <h3 class="pg-sec-title" id="pg-sec-routine">Rutina Sugerida para Padres (5 Pasos)</h3>
+              </div>
+              <ol class="pg-ets-steps">
+                <li>Agrega en la <strong>Estación 0</strong> las fiestas culturales del cuaderno.</li>
+                <li>Activa el temporizador en la cabecera: 15 minutos de estudio y 5 minutos de pausa.</li>
+                <li>Ajusta la voz en inglés a <strong>Despacio</strong> al aprender y a <strong>Normal</strong> al ensayar.</li>
+                <li>Descarga el respaldo (<code>.json</code>) al finalizar cada sesión.</li>
+                <li>Imprime las dos hojas de la <strong>Estación 4</strong> antes del martes.</li>
+              </ol>
+            </section>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: CENTRO DE REINICIO SEGURO (SELECTIVO O TOTAL) ==================== -->
+  <div
+    class="modal-overlay"
+    id="reset-manager-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="rm-modal-title"
+    hidden
+  >
+    <div class="modal-dialog rm-dialog">
+      <div class="modal-topbar rm-topbar">
+        <div>
+          <span class="rm-kicker">🧹 Zona de Padres • Gestión Local</span>
+          <h2 class="rm-title" id="rm-modal-title">Centro de Reinicio Seguro</h2>
+        </div>
+        <button type="button" class="modal-close-btn" id="rm-close-btn" aria-label="Cerrar centro de reinicio">
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
+
+      <div class="modal-body rm-body">
+        <div class="rm-safeguard-banner">
+          <div>
+            <strong>Paso recomendado antes de reiniciar:</strong>
+            <span>Descarga un respaldo en archivo <code>.json</code> por si quieres volver a este estado.</span>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="rm-backup-first-btn">
+            ⬇️ Descargar respaldo (.json)
+          </button>
+        </div>
+
+        <p class="rm-section-label">1. Reiniciar una sola estación (conserva el resto intacto):</p>
+        <div class="rm-station-list" id="rm-station-list"></div>
+
+        <div class="rm-danger-zone">
+          <div class="rm-danger-copy">
+            <h3>2. Reiniciar TODA la aplicación desde cero</h3>
+            <p>Borra el banco personalizado, los comparativos, el periódico, las 5 preguntas y los récords de este navegador.</p>
+          </div>
+          <div class="rm-danger-controls" id="rm-full-reset-controls">
+            <button type="button" class="btn btn-danger-solid" id="rm-reset-all-btn">
+              🗑️ Reiniciar todo ahora
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
